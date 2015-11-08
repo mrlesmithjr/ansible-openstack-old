@@ -1,7 +1,8 @@
 ---
 # defaults file for ansible-openstack
-# generate passwords 'openssl rand -hex 10'
+# generate passwords and keys using 'openssl rand -hex 10'
 mysql_root_password: []  #Root password for the database
+openstack_admin_email: 'admin@{{ pri_domain_name }}'  #defines admin users email
 openstack_admin_pass: []  #Password of user admin
 openstack_ceilometer_dbpass: []  #Database password for the Telemetry service
 openstack_ceilometer_pass: []  #Password of Telemetry service user ceilometer
@@ -9,17 +10,69 @@ openstack_cinder_dbpass: []  #Database password for the Block Storage service
 openstack_cinder_pass: []  #Password of Block Storage service user cinder
 openstack_dash_dbpass: []  #Database password for the dashboard
 openstack_debian_repository: 'deb http://ubuntu-cloud.archive.canonical.com/ubuntu trusty-updates/{{ openstack_release }} main'
+openstack_demo_email: 'demo@{{ pri_domain_name }}'  #defines demo users email
 openstack_demo_pass: []  #Password of user demo
 openstack_glance_dbpass: []  #Database password for Image Service
 openstack_glance_pass: []  #Password of Image Service user glance
+openstack_glance_url: http://glance  #http://glance.{{ pri_domain_name }}
 openstack_heat_dbpass: []  #Database password for the Orchestration service
 openstack_heat_pass: []  #Password of Orchestration service user heat
+openstack_keystone_dbhost: localhost  #defines keystone db host
 openstack_keystone_dbpass: []  #Database password of Identity service
+openstack_keystone_default_region: regionOne
+openstack_keystone_endpoints:
+  - service_name: keystone
+    public_url: "{{ openstack_keystone_url }}:5000/v2.0"
+    internal_url: "{{ openstack_keystone_url }}:5000/v2.0"
+    admin_url: "{{ openstack_keystone_url }}:35357/v2.0"
+  - service_name: glance
+    public_url: "{{ openstack_glance_url }}:9292/"
+    internal_url: "{{ openstack_glance_url }}:9292/"
+    admin_url: "{{ openstack_glance_url }}:9292/"
+openstack_keystone_roles:
+  - name: admin
+    user: admin
+    tenant: admin
+  - name: _member_
+    user: demo
+    tenant: demo
+  - name: admin
+    user: glance
+    tenant: service
+openstack_keystone_services:
+  - name: keystone
+    service_type: identity
+  - name: glance
+    service_type: image
+openstack_keystone_temp_admin_token: []  #Key for initial setup of keystone
+openstack_keystone_tenants:
+  - name: admin
+    description: "Admin Tenant"
+  - name: demo
+    description: "Demo Tenant"
+  - name: service
+    description: "Service Tenant"
+openstack_keystone_url: http://keystone  #http://keystone.{{ pri_domain_name }}
+openstack_keystone_users:
+  - name: admin
+    password: "{{ openstack_admin_pass }}"
+    email: "{{ openstack_admin_email }}"
+    tenant: admin
+  - name: demo
+    password: "{{ openstack_demo_pass }}"
+    email: "{{ openstack_demo_email }}"
+    tenant: demo
+  - name: glance
+    password: "{{ openstack_glance_pass }}"
+    tenant: service
+openstack_keystone_verbose_logging: false  #defines if keystone should enable verbose logging for troubleshooting
 openstack_neutron_dbpass: []  #Database password for the Networking service
 openstack_neutron_pass: []  #Password of Networking service user neutron
 openstack_nova_dbpass: []  #Database password for Compute service
 openstack_nova_pass: []  #Password of Compute service user nova
-openstack_rabbit_pass: []  #Password of user guest of RabbitMQ
-openstack_release: juno
+openstack_rabbit_pass: []  #Password of user of RabbitMQ
+openstack_rabbit_user: openstack  #User  of RabbitMQ
+openstack_release: juno  #defines openstack release to install
 openstack_trove_dbpass: []  #Database password of Database service
 openstack_trove_pass: []  #Password of Database Service user trove
+pri_domain_name: example.org  #defines primary domain name of site.

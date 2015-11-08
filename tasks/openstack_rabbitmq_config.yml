@@ -1,0 +1,15 @@
+---
+#- name: openstack_rabbitmq_config | configuring RabbitMQ on Controller Node(s)
+#  rabbitmq_user:
+#    user: guest
+#    password: "{{ openstack_rabbit_pass }}"
+
+- name: openstack_rabbitmq_config | creating RabbitMQ user
+  rabbitmq_user:
+    user: "{{ openstack_rabbit_user }}"
+    password: "{{ openstack_rabbit_pass }}"
+    vhost: "/"
+    configure_priv: ".*"
+    read_priv: ".*"
+    write_priv: ".*"
+    state: present

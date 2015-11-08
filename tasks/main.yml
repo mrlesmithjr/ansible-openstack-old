@@ -1,3 +1,9 @@
 ---
 # tasks file for ansible-openstack
 - include: openstack_basic.yml
+
+- include: openstack_rabbitmq_config.yml
+  when: inventory_hostname in groups['openstack-controller-nodes']
+
+- include: openstack_identity_services.yml
+  when: inventory_hostname in groups['openstack-controller-nodes']
