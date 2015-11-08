@@ -17,8 +17,8 @@
     repo: "{{ openstack_debian_repository }}"
     state: present
 
-- name: openstack_basic | configuring RabbitMQ on Controller Node(s)
-  rabbitmq_user:
-    user: guest
-    password: "{{ openstack_rabbit_pass }}"
-  when: inventory_hostname in groups['openstack-controller-nodes']
+#- name: openstack_basic | configuring RabbitMQ on Controller Node(s)
+#  rabbitmq_user:
+#    user: guest
+#    password: "{{ openstack_rabbit_pass }}"
+#  when: inventory_hostname in groups['openstack-controller-nodes']
