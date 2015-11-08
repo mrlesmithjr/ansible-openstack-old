@@ -20,13 +20,50 @@ A list of other roles hosted on Galaxy should go here, plus any details in regar
 
 Example Playbook
 ----------------
-
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
-
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
-
+````
+---
+# Notes
+# NTP on compute/network node(s) should point to controller node(s)
+- name: Basic Setup (All Nodes)
+  hosts: openstack-nodes
+  sudo: true
+  vars:
+    - update_etc_hosts: true
+    - mysql_root_password: 61fea78e16dd73bd757a  #Root password for the database
+    - openstack_admin_pass: 29b1416692cb38014ea0  #Password of user admin
+    - openstack_ceilometer_dbpass: 85c4ac62a58c0a25a922  #Database password for the Telemetry service
+    - openstack_ceilometer_pass: c3e1b1db22e9b33cd7f4  #Password of Telemetry service user ceilometer
+    - openstack_cinder_dbpass: bcb4f4279d699c12c6ea  #Database password for the Block Storage service
+    - openstack_cinder_pass: d9eb36abbb2e88356208  #Password of Block Storage service user cinder
+    - openstack_dash_dbpass: cb77b8806e4dc8693d8e  #Database password for the dashboard
+    - openstack_demo_pass: 54a27efd264beeb7843d  #Password of user demo
+    - openstack_glance_dbpass: 295062a986b8deded530  #Database password for Image Service
+    - openstack_glance_pass: 60278dafa015c0cc3943  #Password of Image Service user glance
+    - openstack_heat_dbpass: d69d8f9bd2a70f0f1f5b  #Database password for the Orchestration service
+    - openstack_heat_pass: 9fd0ae5b48837ad34b31  #Password of Orchestration service user heat
+    - openstack_keystone_dbpass: 8ed178efd2bef6fcabe3  #Database password of Identity service
+    - openstack_keystone_temp_admin_token: 52f5e14ad1a9f7d54e1d  #Key for initial setup of keystone
+    - openstack_keystone_verbose_logging: true  #defines if keystone should enable verbose logging for troubleshooting
+    - openstack_neutron_dbpass: 7bff44471bdce25d55af  #Database password for the Networking service
+    - openstack_neutron_pass: 19440ed58e9ba153bbb5  #Password of Networking service user neutron
+    - openstack_nova_dbpass: b544e0b6881f33c82dc8  #Database password for Compute service
+    - openstack_nova_pass: 34e5f8990ef84cc69f91  #Password of Compute service user nova
+    - openstack_rabbit_pass: 6bd8dbb369181e89bf3a  #Password of user guest of RabbitMQ
+    - openstack_trove_dbpass: c6c2792fa14319dbe9da  #Database password of Database service
+    - openstack_trove_pass: 892ba2ff14319c299b54  #Password of Database Service user trove
+    - pri_domain_name: example.org  #defines primary domain name of site.
+  roles:
+    - role: ansible-bootstrap
+    - role: ansible-base
+    - role: ansible-config-interfaces
+    - role: ansible-ntp
+    - role: ansible-mariadb-mysql
+      when: inventory_hostname in groups['openstack-controller-nodes']
+    - role: ansible-rabbitmq
+      when: inventory_hostname in groups['openstack-controller-nodes']
+    - role: ansible-openstack
+  tasks:
+````
 License
 -------
 
