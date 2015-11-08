@@ -1,25 +1,25 @@
 ---
 # defaults file for ansible-openstack
 # generate passwords 'openssl rand -hex 10'
-mysql_root_password:	#Root password for the database
-openstack_admin_pass:  #Password of user admin
-openstack_ceilometer_dbpass:  #Database password for the Telemetry service
-openstack_ceilometer_pass:  #Password of Telemetry service user ceilometer
-openstack_cinder_dbpass:  #Database password for the Block Storage service
-openstack_cinder_pass:  #Password of Block Storage service user cinder
-openstack_dash_dbpass:  #Database password for the dashboard
+mysql_root_password: []  #Root password for the database
+openstack_admin_pass: []  #Password of user admin
+openstack_ceilometer_dbpass: []  #Database password for the Telemetry service
+openstack_ceilometer_pass: []  #Password of Telemetry service user ceilometer
+openstack_cinder_dbpass: []  #Database password for the Block Storage service
+openstack_cinder_pass: []  #Password of Block Storage service user cinder
+openstack_dash_dbpass: []  #Database password for the dashboard
 openstack_debian_repository: 'deb http://ubuntu-cloud.archive.canonical.com/ubuntu trusty-updates/{{ openstack_release }} main'
-openstack_demo_pass:  #Password of user demo
-openstack_glance_dbpass:  #Database password for Image Service
-openstack_glance_pass:  #Password of Image Service user glance
-openstack_heat_dbpass:  #Database password for the Orchestration service
-openstack_heat_pass:  #Password of Orchestration service user heat
-openstack_keystone_dbpass:  #Database password of Identity service
-openstack_neutron_dbpass:  #Database password for the Networking service
-openstack_neutron_pass:  #Password of Networking service user neutron
-openstack_nova_dbpass:  #Database password for Compute service
-openstack_nova_pass:  #Password of Compute service user nova
-openstack_rabbit_pass:  #Password of user guest of RabbitMQ
+openstack_demo_pass: []  #Password of user demo
+openstack_glance_dbpass: []  #Database password for Image Service
+openstack_glance_pass: []  #Password of Image Service user glance
+openstack_heat_dbpass: []  #Database password for the Orchestration service
+openstack_heat_pass: []  #Password of Orchestration service user heat
+openstack_keystone_dbpass: []  #Database password of Identity service
+openstack_neutron_dbpass: []  #Database password for the Networking service
+openstack_neutron_pass: []  #Password of Networking service user neutron
+openstack_nova_dbpass: []  #Database password for Compute service
+openstack_nova_pass: []  #Password of Compute service user nova
+openstack_rabbit_pass: []  #Password of user guest of RabbitMQ
 openstack_release: juno
-openstack_trove_dbpass:  #Database password of Database service
-openstack_trove_pass:  #Password of Database Service user trove
+openstack_trove_dbpass: []  #Database password of Database service
+openstack_trove_pass: []  #Password of Database Service user trove
