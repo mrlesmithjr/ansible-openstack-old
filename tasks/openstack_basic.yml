@@ -1,0 +1,24 @@
+---
+# Basic Environment Configurations
+- name: openstack_basic | cleaning up ntp dhcp configurations
+  file:
+    path: /var/lib/ntp/ntp.conf.dhcp
+    state: absent
+
+- name: openstack_basic | installing pre-reqs
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - ubuntu-cloud-keyring
+
+- name: openstack_basic | adding openstack debian repos
+  apt_repository:
+    repo: "{{ openstack_debian_repository }}"
+    state: present
+
+- name: openstack_basic | configuring RabbitMQ on Controller Node(s)
+  rabbitmq_user:
+    user: guest
+    password: "{{ openstack_rabbit_pass }}"
+  when: inventory_hostname in groups['openstack-controller-nodes']
