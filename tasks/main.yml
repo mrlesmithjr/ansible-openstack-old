@@ -7,3 +7,21 @@
 
 - include: openstack_identity_services.yml
   when: inventory_hostname in groups['openstack-controller-nodes']
+
+- include: openstack_keystone_tenants.yml
+  when: inventory_hostname in groups['openstack-controller-nodes']
+
+- include: openstack_keystone_users.yml
+  when: inventory_hostname in groups['openstack-controller-nodes']
+
+- include: openstack_keystone_roles.yml
+  when: inventory_hostname in groups['openstack-controller-nodes']
+
+- include: openstack_keystone_services.yml
+  when: inventory_hostname in groups['openstack-controller-nodes']
+
+- include: openstack_keystone_endpoints.yml
+  when: inventory_hostname in groups['openstack-controller-nodes']
+
+- include: openstack_image_services.yml
+  when: inventory_hostname in groups['openstack-controller-nodes']

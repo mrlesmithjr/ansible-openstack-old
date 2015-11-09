@@ -1,0 +1,9 @@
+---
+- name: openstack_identity_services | assigning user roles for tenants
+  keystone_user:
+    user: "{{ item.user }}"
+    tenant: "{{ item.tenant }}"
+    role: "{{ item.name }}"
+    token: "{{ openstack_keystone_temp_admin_token }}"
+    state: present
+  with_items: openstack_keystone_roles

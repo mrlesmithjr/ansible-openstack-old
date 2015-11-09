@@ -17,13 +17,21 @@
     - localhost
     - '%'
 
+- name: openstack_identity_services | marking keystone to not auto start after install
+  shell: 'echo "manual" > /etc/init/keystone.override'
+  args:
+    creates: /etc/init/keystone.override
+
 - name: openstack_identity_services | installing keystone packages
   apt:
     name: "{{ item }}"
     state: present
   with_items:
     - keystone
+    - libapache2-mod-wsgi
     - python-keystoneclient
+    - python-memcache
+    - python-openstackclient
 
 - name: openstack_identity_services | configuring keystone
   template:
@@ -32,6 +40,7 @@
     owner: root
     group: root
     mode: 0644
+#  notify: restart keystone
 
 - name: openstack_identity_services | checking if keystone has been populated
   stat:
@@ -49,11 +58,69 @@
     state: touch
   when: keystone_populated.changed
 
-- name: openstack_identity_services | restarting keystone
+- name: openstack_identity_services | disabling default apache site
+  file:
+    path: /etc/apache2/sites-enabled/000-default.conf
+    state: absent
+  notify:
+    - restart apache2
+
+- name: openstack_identity_services | configuring apache
+  lineinfile:
+    dest: "/etc/apache2/apache2.conf"
+    line: "ServerName {{ inventory_hostname }}"
+  notify:
+    - restart apache2
+
+- name: openstack_identity_services | configuring identity service virtual hosts
+  template:
+    src: etc/apache2/sites-available/wsgi-keystone.conf.j2
+    dest: /etc/apache2/sites-available/wsgi-keystone.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: openstack_identity_services | enabling identity service virtual hosts
+  file:
+    src: /etc/apache2/sites-available/wsgi-keystone.conf
+    dest: /etc/apache2/sites-enabled/wsgi-keystone.conf
+    state: link
+  register: apache2_reconfigured
+  notify:
+    - restart apache2
+
+- name: openstack_identity_services | creating WSGI components folder
+  file:
+    path: /var/www/cgi-bin/keystone
+    state: directory
+
+- name: openstack_identity_services | downloading WSGI components
+  get_url:
+    url: http://git.openstack.org/cgit/openstack/keystone/plain/httpd/keystone.py?h=stable/kilo
+    dest: "{{ item }}"
+  with_items:
+    - /var/www/cgi-bin/keystone/main
+    - /var/www/cgi-bin/keystone/admin
+
+- name: openstack_identity_services | setting permissions on WSGI folder(s)
+  file:
+    path: /var/www/cgi-bin/keystone
+    owner: keystone
+    group: keystone
+    mode: 0755
+    recurse: yes
+
+#- name: openstack_identity_services | restarting keystone
+#  service:
+#    name: keystone
+#    state: restarted
+#  when: keystone_populated.changed
+
+- name: openstack_identity_services | restarting apache2
   service:
-    name: keystone
+    name: apache2
     state: restarted
-  when: keystone_populated.changed
+  when: apache2_reconfigured.changed
 
 - name: openstack_identity_services | removing sqlite db
   file:
@@ -68,50 +135,3 @@
     job: "/usr/bin/keystone-manage token_flush >/var/log/keystone/keystone-tokenflush.log 2>&1"
     state: present
     cron_file: keystone_token_flush
-
-- name: openstack_identity_services | creating tenants
-  keystone_user:
-    tenant: "{{ item.name }}"
-    tenant_description: "{{ item.description }}"
-    token: "{{ openstack_keystone_temp_admin_token }}"
-    state: present
-  with_items: openstack_keystone_tenants
-
-- name: openstack_identity_services | creating users
-  keystone_user:
-    user: "{{ item.name }}"
-    password: "{{ item.password }}"
-    email: "{{ item.email|default('nobody@localhost') }}"
-    tenant: "{{ item.tenant }}"
-    token: "{{ openstack_keystone_temp_admin_token }}"
-    state: present
-  with_items: openstack_keystone_users
-
-- name: openstack_identity_services | assigning user roles for tenants
-  keystone_user:
-    user: "{{ item.user }}"
-    tenant: "{{ item.tenant }}"
-    role: "{{ item.name }}"
-    token: "{{ openstack_keystone_temp_admin_token }}"
-    state: present
-  with_items: openstack_keystone_roles
-
-- name: openstack_identity_services | creating keystone services
-  keystone_service:
-    name: "{{ item.name }}"
-    service_type: "{{ item.service_type }}"
-    description: "{{ item.description|default('Not provided') }}"
-    token: "{{ openstack_keystone_temp_admin_token }}"
-    state: present
-  with_items: openstack_keystone_services
-
-- name: openstack_identity_services | creating keystone endpoints
-  keystone_endpoint:
-    service_name: "{{ item.service_name }}"
-    region: "{{ item.region|default(openstack_keystone_default_region) }}"
-    public_url: "{{ item.public_url }}"
-    internal_url: "{{ item.internal_url }}"
-    admin_url: "{{ item.admin_url }}"
-    token: "{{ openstack_keystone_temp_admin_token }}"
-    state: present
-  with_items: openstack_keystone_endpoints

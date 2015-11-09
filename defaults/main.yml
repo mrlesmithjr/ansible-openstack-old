@@ -12,9 +12,11 @@ openstack_dash_dbpass: []  #Database password for the dashboard
 openstack_debian_repository: 'deb http://ubuntu-cloud.archive.canonical.com/ubuntu trusty-updates/{{ openstack_release }} main'
 openstack_demo_email: 'demo@{{ pri_domain_name }}'  #defines demo users email
 openstack_demo_pass: []  #Password of user demo
+openstack_glance_dbhost: localhost  #defines glance db host
 openstack_glance_dbpass: []  #Database password for Image Service
 openstack_glance_pass: []  #Password of Image Service user glance
 openstack_glance_url: http://glance  #http://glance.{{ pri_domain_name }}
+openstack_glance_verbose_logging: false  #defines if glance should enable verbose logging for troubleshooting
 openstack_heat_dbpass: []  #Database password for the Orchestration service
 openstack_heat_pass: []  #Password of Orchestration service user heat
 openstack_keystone_dbhost: localhost  #defines keystone db host
@@ -41,8 +43,10 @@ openstack_keystone_roles:
     tenant: service
 openstack_keystone_services:
   - name: keystone
+    description: "OpenStack Identity"
     service_type: identity
   - name: glance
+    description: "OpenStack Image Service"
     service_type: image
 openstack_keystone_temp_admin_token: []  #Key for initial setup of keystone
 openstack_keystone_tenants:
@@ -72,7 +76,7 @@ openstack_nova_dbpass: []  #Database password for Compute service
 openstack_nova_pass: []  #Password of Compute service user nova
 openstack_rabbit_pass: []  #Password of user of RabbitMQ
 openstack_rabbit_user: openstack  #User  of RabbitMQ
-openstack_release: juno  #defines openstack release to install
+openstack_release: kilo  #defines openstack release to install
 openstack_trove_dbpass: []  #Database password of Database service
 openstack_trove_pass: []  #Password of Database Service user trove
 pri_domain_name: example.org  #defines primary domain name of site.

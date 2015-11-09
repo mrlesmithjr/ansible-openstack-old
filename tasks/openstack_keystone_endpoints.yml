@@ -1,0 +1,11 @@
+---
+- name: openstack_identity_services | creating keystone endpoints
+  keystone_endpoint:
+    service_name: "{{ item.service_name }}"
+    region: "{{ item.region|default(openstack_keystone_default_region) }}"
+    public_url: "{{ item.public_url }}"
+    internal_url: "{{ item.internal_url }}"
+    admin_url: "{{ item.admin_url }}"
+    token: "{{ openstack_keystone_temp_admin_token }}"
+    state: present
+  with_items: openstack_keystone_endpoints

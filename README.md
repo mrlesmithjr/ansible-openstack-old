@@ -24,11 +24,11 @@ Example Playbook
 ---
 # Notes
 # NTP on compute/network node(s) should point to controller node(s)
-- name: Basic Setup (All Nodes)
+- name: Builds OpenStack Environment
   hosts: openstack-nodes
   sudo: true
   vars:
-    - update_etc_hosts: true
+    - mysql_allow_remote_connections: true  #defines if mysql should listen on loopback (default) or allow remove connections
     - mysql_root_password: 61fea78e16dd73bd757a  #Root password for the database
     - openstack_admin_pass: 29b1416692cb38014ea0  #Password of user admin
     - openstack_ceilometer_dbpass: 85c4ac62a58c0a25a922  #Database password for the Telemetry service
@@ -37,12 +37,17 @@ Example Playbook
     - openstack_cinder_pass: d9eb36abbb2e88356208  #Password of Block Storage service user cinder
     - openstack_dash_dbpass: cb77b8806e4dc8693d8e  #Database password for the dashboard
     - openstack_demo_pass: 54a27efd264beeb7843d  #Password of user demo
+    - openstack_glance_dbhost: controller-1  #defines glance db host
     - openstack_glance_dbpass: 295062a986b8deded530  #Database password for Image Service
     - openstack_glance_pass: 60278dafa015c0cc3943  #Password of Image Service user glance
+    - openstack_glance_url: http://192.168.202.11  #http://glance.{{ pri_domain_name }}
+    - openstack_glance_verbose_logging: true  #defines if glance should enable verbose logging for troubleshooting
     - openstack_heat_dbpass: d69d8f9bd2a70f0f1f5b  #Database password for the Orchestration service
     - openstack_heat_pass: 9fd0ae5b48837ad34b31  #Password of Orchestration service user heat
+    - openstack_keystone_dbhost: controller-1  #defines keystone db host
     - openstack_keystone_dbpass: 8ed178efd2bef6fcabe3  #Database password of Identity service
     - openstack_keystone_temp_admin_token: 52f5e14ad1a9f7d54e1d  #Key for initial setup of keystone
+    - openstack_keystone_url: http://192.168.202.11 #http://keystone.{{ pri_domain_name }}
     - openstack_keystone_verbose_logging: true  #defines if keystone should enable verbose logging for troubleshooting
     - openstack_neutron_dbpass: 7bff44471bdce25d55af  #Database password for the Networking service
     - openstack_neutron_pass: 19440ed58e9ba153bbb5  #Password of Networking service user neutron
@@ -52,12 +57,17 @@ Example Playbook
     - openstack_trove_dbpass: c6c2792fa14319dbe9da  #Database password of Database service
     - openstack_trove_pass: 892ba2ff14319c299b54  #Password of Database Service user trove
     - pri_domain_name: example.org  #defines primary domain name of site.
+    - update_etc_hosts: true
   roles:
     - role: ansible-bootstrap
     - role: ansible-base
     - role: ansible-config-interfaces
     - role: ansible-ntp
+    - role: ansible-apache2
+      when: inventory_hostname in groups['openstack-controller-nodes']
     - role: ansible-mariadb-mysql
+      when: inventory_hostname in groups['openstack-controller-nodes']
+    - role: ansible-memcached
       when: inventory_hostname in groups['openstack-controller-nodes']
     - role: ansible-rabbitmq
       when: inventory_hostname in groups['openstack-controller-nodes']
