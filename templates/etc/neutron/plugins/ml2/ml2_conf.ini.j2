@@ -1,5 +1,9 @@
-{% if inventory_hostname in groups['openstack-network-nodes'] %}
 [agent]
+{% if inventory_hostname in groups['openstack-compute-nodes'] %}
+tunnel_types = gre
+{% endif %}
+
+{% if inventory_hostname in groups['openstack-network-nodes'] %}
 tunnel_types = gre
 {% endif %}
 
@@ -9,7 +13,18 @@ tunnel_types = gre
 #
 # type_drivers = local,flat,vlan,gre,vxlan
 # Example: type_drivers = flat,vlan,gre,vxlan
+
+{% if inventory_hostname in groups['openstack-compute-nodes'] %}
 type_drivers = flat,vlan,gre,vxlan
+{% endif %}
+
+{% if inventory_hostname in groups['openstack-controller-nodes'] %}
+type_drivers = flat,vlan,gre,vxlan
+{% endif %}
+
+{% if inventory_hostname in groups['openstack-network-nodes'] %}
+type_drivers = flat,vlan,gre,vxlan
+{% endif %}
 
 # (ListOpt) Ordered list of network_types to allocate as tenant
 # networks. The default value 'local' is useful for single-box testing
@@ -17,7 +32,18 @@ type_drivers = flat,vlan,gre,vxlan
 #
 # tenant_network_types = local
 # Example: tenant_network_types = vlan,gre,vxlan
+
+{% if inventory_hostname in groups['openstack-compute-nodes'] %}
 tenant_network_types = gre
+{% endif %}
+
+{% if inventory_hostname in groups['openstack-controller-nodes'] %}
+tenant_network_types = gre
+{% endif %}
+
+{% if inventory_hostname in groups['openstack-network-nodes'] %}
+tenant_network_types = gre
+{% endif %}
 
 # (ListOpt) Ordered list of networking mechanism driver entrypoints
 # to be loaded from the neutron.ml2.mechanism_drivers namespace.
@@ -27,7 +53,18 @@ tenant_network_types = gre
 # Example: mechanism_drivers = cisco,logger
 # Example: mechanism_drivers = openvswitch,brocade
 # Example: mechanism_drivers = linuxbridge,brocade
+
+{% if inventory_hostname in groups['openstack-compute-nodes'] %}
 mechanism_drivers = openvswitch
+{% endif %}
+
+{% if inventory_hostname in groups['openstack-controller-nodes'] %}
+mechanism_drivers = openvswitch
+{% endif %}
+
+{% if inventory_hostname in groups['openstack-network-nodes'] %}
+mechanism_drivers = openvswitch
+{% endif %}
 
 # (ListOpt) Ordered list of extension driver entrypoints
 # to be loaded from the neutron.ml2.extension_drivers namespace.
@@ -65,6 +102,7 @@ mechanism_drivers = openvswitch
 # flat_networks =
 # Example:flat_networks = physnet1,physnet2
 # Example:flat_networks = *
+
 {% if inventory_hostname in groups['openstack-network-nodes'] %}
 flat_networks = external
 {% endif %}
@@ -81,7 +119,18 @@ flat_networks = external
 [ml2_type_gre]
 # (ListOpt) Comma-separated list of <tun_min>:<tun_max> tuples enumerating ranges of GRE tunnel IDs that are available for tenant network allocation
 # tunnel_id_ranges =
+
+{% if inventory_hostname in groups['openstack-compute-nodes'] %}
 tunnel_id_ranges = 1:1000
+{% endif %}
+
+{% if inventory_hostname in groups['openstack-controller-nodes'] %}
+tunnel_id_ranges = 1:1000
+{% endif %}
+
+{% if inventory_hostname in groups['openstack-network-nodes'] %}
+tunnel_id_ranges = 1:1000
+{% endif %}
 
 [ml2_type_vxlan]
 # (ListOpt) Comma-separated list of <vni_min>:<vni_max> tuples enumerating
@@ -96,8 +145,14 @@ tunnel_id_ranges = 1:1000
 # vxlan_group =
 # Example: vxlan_group = 239.1.1.1
 
-{% if inventory_hostname in groups['openstack-network-nodes'] %}
 [ovs]
+{% if inventory_hostname in groups['openstack-compute-nodes'] %}
+{%   if openstack_instance_tunnel_ip is defined %}
+local_ip = {{ openstack_instance_tunnel_ip }}
+{%   endif %}
+{% endif %}
+
+{% if inventory_hostname in groups['openstack-network-nodes'] %}
 {%   if openstack_instance_tunnel_ip is defined %}
 local_ip = {{ openstack_instance_tunnel_ip }}
 bridge_mappings = external:br-ex
@@ -108,9 +163,24 @@ bridge_mappings = external:br-ex
 # Controls if neutron security group is enabled or not.
 # It should be false when you use nova security group.
 # enable_security_group = True
+
+{% if inventory_hostname in groups['openstack-compute-nodes'] %}
 enable_security_group = True
 enable_ipset = True
 firewall_driver = neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver
+{% endif %}
+
+{% if inventory_hostname in groups['openstack-controller-nodes'] %}
+enable_security_group = True
+enable_ipset = True
+firewall_driver = neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver
+{% endif %}
+
+{% if inventory_hostname in groups['openstack-network-nodes'] %}
+enable_security_group = True
+enable_ipset = True
+firewall_driver = neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver
+{% endif %}
 
 # Use ipset to speed-up the iptables security groups. Enabling ipset support
 # requires that ipset is installed on L2 agent node.

@@ -19,6 +19,8 @@ openstack_glance_url: 'http://{{ openstack_services_vip }}'  #http://glance.{{ p
 openstack_glance_verbose_logging: false  #defines if glance should enable verbose logging for troubleshooting
 openstack_heat_dbpass: []  #Database password for the Orchestration service
 openstack_heat_pass: []  #Password of Orchestration service user heat
+openstack_horizon_remove_ubuntu_theme: false  #defines if the Ubuntu Horizon theme should be removed and the original Horizon theme restored
+openstack_instance_tunnel_int: []  #defines interface to assign to OVS br-ex..ex..eth2
 openstack_instance_tunnel_ip: []  #define interface address for tunnel interface....ex. {{ ansible_eth2.ipv4.address }}
 openstack_keystone_dbhost: '{{ openstack_services_vip }}'  #defines keystone db host
 openstack_keystone_dbpass: []  #Database password of Identity service
@@ -97,10 +99,34 @@ openstack_keystone_users:
     password: "{{ openstack_nova_pass }}"
     tenant: service
 openstack_keystone_verbose_logging: false  #defines if keystone should enable verbose logging for troubleshooting
+openstack_metadata_secret: []  #defines shared metadata secret for metadata services
 openstack_networking: neutron  #defines networking to use...neutron or nova (legacy)
 openstack_neutron_dbhost: '{{ openstack_services_vip }}'  #defines neutron db host
 openstack_neutron_dbpass: []  #Database password for the Networking service
+openstack_neutron_external_network_info:  #defines external networks and subnets to create
+  - name: ext
+    network_name: ext-net
+    provider_network_type: flat
+    provider_physical_network: external
+    router_external: true
+    shared: false
+    subnet_name: ext-subnet
+    cidr: 203.0.113.0/24
+    pool_start: 203.0.113.101
+    pool_end: 203.0.113.200
+    enable_dhcp: false
+    gateway: 203.0.113.1
 openstack_neutron_pass: []  #Password of Networking service user neutron
+openstack_neutron_tenant_network_info:
+  - name: demo
+    tenant_name: demo
+    username: demo
+    password: '{{ openstack_demo_pass }}'
+    network_name: demo-net
+    subnet_name: demo-subnet
+    cidr: 192.168.10.0/24
+    gateway: 192.168.10.1
+    router_name: demo-router
 openstack_neutron_url: 'http://{{ openstack_services_vip }}'
 openstack_neutron_verbose_logging: false  #defines if neutron should enable verbose logging for troubleshooting
 openstack_nova_dbhost: '{{ openstack_services_vip }}'  #defines nova db host

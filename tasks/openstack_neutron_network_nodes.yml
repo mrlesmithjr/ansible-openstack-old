@@ -24,7 +24,7 @@
     - neutron-dhcp-agent
     - neutron-metadata-agent
 
-- name: openstack_neutron_controller_nodes | configuring Neutron
+- name: openstack_neutron_network_nodes | configuring Neutron
   template:
     src: etc/neutron/neutron.conf.j2
     dest: /etc/neutron/neutron.conf
@@ -37,7 +37,7 @@
     - restart neutron-dhcp-agent
     - restart neutron-metadata-agent
 
-- name: openstack_neutron_controller_nodes | configuring Neutron ML2 Plugin(s)
+- name: openstack_neutron_network_nodes | configuring Neutron ML2 Plugin(s)
   template:
     src: etc/neutron/plugins/ml2/ml2_conf.ini.j2
     dest: /etc/neutron/plugins/ml2/ml2_conf.ini
@@ -49,3 +49,53 @@
     - restart neutron-l3-agent
     - restart neutron-dhcp-agent
     - restart neutron-metadata-agent
+
+- name: openstack_neutron_network_nodes | configuring Neutron L3 Agent
+  template:
+    src: etc/neutron/l3_agent.ini.j2
+    dest: /etc/neutron/l3_agent.ini
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart neutron-plugin-openvswitch-agent
+    - restart neutron-l3-agent
+    - restart neutron-dhcp-agent
+    - restart neutron-metadata-agent
+
+- name: openstack_neutron_network_nodes | configuring Neutron DHCP Agent
+  template:
+    src: etc/neutron/dhcp_agent.ini.j2
+    dest: /etc/neutron/dhcp_agent.ini
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart neutron-plugin-openvswitch-agent
+    - restart neutron-l3-agent
+    - restart neutron-dhcp-agent
+    - restart neutron-metadata-agent
+
+- name: openstack_neutron_network_nodes | configuring Neutron MetaData Agent
+  template:
+    src: etc/neutron/metadata_agent.ini.j2
+    dest: /etc/neutron/metadata_agent.ini
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart neutron-plugin-openvswitch-agent
+    - restart neutron-l3-agent
+    - restart neutron-dhcp-agent
+    - restart neutron-metadata-agent
+
+- name: openstack_neutron_network_nodes | Creating Openvswitch Bridge (br-ex)
+  openvswitch_bridge:
+    bridge: br-ex
+    state: present
+
+- name: openstack_neutron_network_nodes | adding port to Openvswitch Bridge (br-ex)
+  openvswitch_port:
+    bridge: br-ex
+    port: "{{ openstack_instance_tunnel_int }}"
+    state: present

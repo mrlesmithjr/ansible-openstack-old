@@ -79,3 +79,8 @@
   service:
     name: nova-novncproxy
     state: restarted
+
+- name: restart openvswitch-switch
+  service:
+    name: openvswitch-switch
+    state: restarted

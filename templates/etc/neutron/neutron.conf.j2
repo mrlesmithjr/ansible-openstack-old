@@ -60,7 +60,19 @@ verbose = True
 # previous versions, the class name of a plugin can be specified instead of its
 # entrypoint name.
 #
+
+{% if inventory_hostname in groups['openstack-compute-nodes'] %}
 core_plugin = ml2
+{% endif %}
+
+{% if inventory_hostname in groups['openstack-controller-nodes'] %}
+core_plugin = ml2
+{% endif %}
+
+{% if inventory_hostname in groups['openstack-network-nodes'] %}
+core_plugin = ml2
+{% endif %}
+
 # Example: core_plugin = ml2
 
 # (ListOpt) List of service plugin entrypoints to be loaded from the
@@ -71,7 +83,18 @@ core_plugin = ml2
 #
 # service_plugins =
 # Example: service_plugins = router,firewall,lbaas,vpnaas,metering
+
+{% if inventory_hostname in groups['openstack-compute-nodes'] %}
 service_plugins = router
+{% endif %}
+
+{% if inventory_hostname in groups['openstack-controller-nodes'] %}
+service_plugins = router
+{% endif %}
+
+{% if inventory_hostname in groups['openstack-network-nodes'] %}
+service_plugins = router
+{% endif %}
 
 # Paste configuration file
 # api_paste_config = api-paste.ini
@@ -85,7 +108,18 @@ service_plugins = router
 
 # The strategy to be used for auth.
 # Supported values are 'keystone'(default), 'noauth'.
+
+{% if inventory_hostname in groups['openstack-compute-nodes'] %}
 auth_strategy = keystone
+{% endif %}
+
+{% if inventory_hostname in groups['openstack-controller-nodes'] %}
+auth_strategy = keystone
+{% endif %}
+
+{% if inventory_hostname in groups['openstack-network-nodes'] %}
+auth_strategy = keystone
+{% endif %}
 
 # Base MAC address. The first 3 octets will remain unchanged. If the
 # 4h octet is not 00, it will also be used. The others will be
@@ -127,7 +161,18 @@ auth_strategy = keystone
 # gateway is not a link local address. Deprecated, to be removed during the
 # K release, at which point the check will be mandatory.
 # force_gateway_on_subnet = True
+
+{% if inventory_hostname in groups['openstack-compute-nodes'] %}
 allow_overlapping_ips = True
+{% endif %}
+
+{% if inventory_hostname in groups['openstack-controller-nodes'] %}
+allow_overlapping_ips = True
+{% endif %}
+
+{% if inventory_hostname in groups['openstack-network-nodes'] %}
+allow_overlapping_ips = True
+{% endif %}
 
 # Default maximum number of items returned in a single response,
 # value == infinite and value < 0 means no max limit, and value must
@@ -346,13 +391,19 @@ allow_overlapping_ips = True
 # ======== neutron nova interactions ==========
 # Send notification to nova when port status is active.
 # notify_nova_on_port_status_changes = True
+
+{% if inventory_hostname in groups['openstack-controller-nodes'] %}
 notify_nova_on_port_status_changes = True
+{% endif %}
 
 # Send notifications to nova when port data (fixed_ips/floatingips) change
 # so nova can update it's cache.
 # notify_nova_on_port_data_changes = True
+
+{% if inventory_hostname in groups['openstack-controller-nodes'] %}
 notify_nova_on_port_data_changes = True
 nova_url = {{ openstack_nova_url }}:8774/v2
+{% endif %}
 
 # URL for connection to nova (Only supports one nova region currently).
 # nova_url = http://127.0.0.1:8774/v2
@@ -561,7 +612,18 @@ nova_url = {{ openstack_nova_url }}:8774/v2
 
 # The messaging driver to use, defaults to rabbit. Other
 # drivers include qpid and zmq. (string value)
+
+{% if inventory_hostname in groups['openstack-compute-nodes'] %}
 rpc_backend=rabbit
+{% endif %}
+
+{% if inventory_hostname in groups['openstack-controller-nodes'] %}
+rpc_backend=rabbit
+{% endif %}
+
+{% if inventory_hostname in groups['openstack-network-nodes'] %}
+rpc_backend=rabbit
+{% endif %}
 
 # The default exchange under which topics are scoped. May be
 # overridden by an exchange name specified in the
@@ -710,6 +772,7 @@ root_helper = sudo /usr/bin/neutron-rootwrap /etc/neutron/rootwrap.conf
 #admin_user = %SERVICE_USER%
 #admin_password = %SERVICE_PASSWORD%
 
+{% if inventory_hostname in groups['openstack-compute-nodes'] %}
 auth_uri = {{ openstack_keystone_url }}:5000
 auth_url = {{ openstack_keystone_url }}:35357
 auth_plugin = password
@@ -718,6 +781,29 @@ user_domain_id = default
 project_name = service
 username = neutron
 password = {{ openstack_neutron_pass }}
+{% endif %}
+
+{% if inventory_hostname in groups['openstack-controller-nodes'] %}
+auth_uri = {{ openstack_keystone_url }}:5000
+auth_url = {{ openstack_keystone_url }}:35357
+auth_plugin = password
+project_domain_id = default
+user_domain_id = default
+project_name = service
+username = neutron
+password = {{ openstack_neutron_pass }}
+{% endif %}
+
+{% if inventory_hostname in groups['openstack-network-nodes'] %}
+auth_uri = {{ openstack_keystone_url }}:5000
+auth_url = {{ openstack_keystone_url }}:35357
+auth_plugin = password
+project_domain_id = default
+user_domain_id = default
+project_name = service
+username = neutron
+password = {{ openstack_neutron_pass }}
+{% endif %}
 
 [database]
 # This line MUST be changed to actually run the plugin.
@@ -730,9 +816,11 @@ password = {{ openstack_neutron_pass }}
 # be set in the corresponding core plugin '.ini' file. However, it is suggested
 # to put the [database] section and its connection attribute in this
 # configuration file.
-{% if inventory_hostname not in groups['openstack-network-nodes'] %}
+
+{% if inventory_hostname in groups['openstack-controller-nodes'] %}
 connection = mysql://neutron:{{ openstack_neutron_dbpass }}@{{ openstack_neutron_dbhost }}/neutron
 {% endif %}
+
 
 # Database engine for which script will be generated when using offline
 # migration
@@ -795,6 +883,7 @@ connection = mysql://neutron:{{ openstack_neutron_dbpass }}@{{ openstack_neutron
 # Timeout value for http requests
 # timeout =
 
+{% if inventory_hostname in groups['openstack-controller-nodes'] %}
 auth_url = {{ openstack_keystone_url }}:35357
 auth_plugin = password
 project_domain_id = default
@@ -803,6 +892,7 @@ region_name = RegionOne
 project_name = service
 username = nova
 password = {{ openstack_nova_pass }}
+{% endif %}
 
 [oslo_concurrency]
 
@@ -991,7 +1081,18 @@ lock_path = $state_path/lock
 # The RabbitMQ broker address where a single node is used. (string value)
 # Deprecated group/name - [DEFAULT]/rabbit_host
 # rabbit_host = localhost
+
+{% if inventory_hostname in groups['openstack-compute-nodes'] %}
 rabbit_host = {{ openstack_rabbit_host }}
+{% endif %}
+
+{% if inventory_hostname in groups['openstack-controller-nodes'] %}
+rabbit_host = {{ openstack_rabbit_host }}
+{% endif %}
+
+{% if inventory_hostname in groups['openstack-network-nodes'] %}
+rabbit_host = {{ openstack_rabbit_host }}
+{% endif %}
 
 # The RabbitMQ broker port where a single node is used. (integer value)
 # Deprecated group/name - [DEFAULT]/rabbit_port
@@ -1008,12 +1109,34 @@ rabbit_host = {{ openstack_rabbit_host }}
 # The RabbitMQ userid. (string value)
 # Deprecated group/name - [DEFAULT]/rabbit_userid
 # rabbit_userid = guest
+
+{% if inventory_hostname in groups['openstack-compute-nodes'] %}
 rabbit_userid = openstack
+{% endif %}
+
+{% if inventory_hostname in groups['openstack-controller-nodes'] %}
+rabbit_userid = openstack
+{% endif %}
+
+{% if inventory_hostname in groups['openstack-network-nodes'] %}
+rabbit_userid = openstack
+{% endif %}
 
 # The RabbitMQ password. (string value)
 # Deprecated group/name - [DEFAULT]/rabbit_password
 # rabbit_password = guest
+
+{% if inventory_hostname in groups['openstack-compute-nodes'] %}
 rabbit_password = {{ openstack_rabbit_pass }}
+{% endif %}
+
+{% if inventory_hostname in groups['openstack-controller-nodes'] %}
+rabbit_password = {{ openstack_rabbit_pass }}
+{% endif %}
+
+{% if inventory_hostname in groups['openstack-network-nodes'] %}
+rabbit_password = {{ openstack_rabbit_pass }}
+{% endif %}
 
 # The RabbitMQ login method. (string value)
 # Deprecated group/name - [DEFAULT]/rabbit_login_method

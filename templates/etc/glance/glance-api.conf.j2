@@ -223,7 +223,10 @@ registry_client_protocol = http
 
 # Driver or drivers to handle sending notifications. Set to
 # 'messaging' to send notifications to a message queue.
+
+{% if inventory_hostname in groups['openstack-controller-nodes'] %}
 notification_driver = noop
+{% endif %}
 
 # Default publisher_id for outgoing notifications.
 # default_publisher_id = image.localhost
@@ -345,7 +348,10 @@ backend = sqlalchemy
 # Deprecated group/name - [DATABASE]/sql_connection
 # Deprecated group/name - [sql]/connection
 #connection = <None>
+
+{% if inventory_hostname in groups['openstack-controller-nodes'] %}
 connection = mysql://glance:{{ openstack_glance_dbpass }}@{{ openstack_glance_dbhost }}/glance
+{% endif %}
 
 # The SQL mode to be used for MySQL sessions. This option,
 # including the default, overrides any server-set SQL mode. To
@@ -445,6 +451,8 @@ connection = mysql://glance:{{ openstack_glance_dbpass }}@{{ openstack_glance_db
 #admin_user = %SERVICE_USER%
 #admin_password = %SERVICE_PASSWORD%
 #revocation_cache_time = 10
+
+{% if inventory_hostname in groups['openstack-controller-nodes'] %}
 auth_uri = {{ openstack_keystone_url }}:5000
 auth_url = {{ openstack_keystone_url }}:35357
 auth_plugin = password
@@ -453,6 +461,7 @@ user_domain_id = default
 project_name = service
 username = glance
 password = {{ openstack_glance_pass }}
+{% endif %}
 
 [paste_deploy]
 # Name of the paste configuration file that defines the available pipelines
@@ -463,7 +472,10 @@ password = {{ openstack_glance_pass }}
 # [pipeline:glance-api-keystone], you would configure the flavor below
 # as 'keystone'.
 #flavor=
+
+{% if inventory_hostname in groups['openstack-controller-nodes'] %}
 flavor=keystone
+{% endif %}
 
 [store_type_location_strategy]
 # The scheme list to use to get store preference order. The scheme must be
@@ -542,13 +554,19 @@ flavor=keystone
 # by the stores option.
 # Deprecated group/name - [DEFAULT]/default_store
 # Default: 'file'
+
+{% if inventory_hostname in groups['openstack-controller-nodes'] %}
 default_store = file
+{% endif %}
 
 # ============ Filesystem Store Options ========================
 
 # Directory that the Filesystem backend store
 # writes image data to
+
+{% if inventory_hostname in groups['openstack-controller-nodes'] %}
 filesystem_store_datadir = /var/lib/glance/images/
+{% endif %}
 
 # A list of directories where image data can be stored.
 # This option may be specified multiple times for specifying multiple store

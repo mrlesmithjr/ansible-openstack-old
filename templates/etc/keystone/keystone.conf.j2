@@ -11,7 +11,10 @@
 # paste application pipelines (for example, in keystone-
 # paste.ini). (string value)
 #admin_token=ADMIN
+
+{% if inventory_hostname in groups['openstack-controller-nodes'] %}
 admin_token={{ openstack_keystone_temp_admin_token }}
+{% endif %}
 
 # The IP address of the network interface for the public
 # service to listen on. (string value)
@@ -634,7 +637,10 @@ log_dir=/var/log/keystone
 # Deprecated group/name - [DATABASE]/sql_connection
 # Deprecated group/name - [sql]/connection
 #connection=sqlite:////var/lib/keystone/keystone.db
+
+{% if inventory_hostname in groups['openstack-controller-nodes'] %}
 connection=mysql://keystone:{{ openstack_keystone_dbpass }}@{{ openstack_keystone_dbhost }}/keystone
+{% endif %}
 
 # The SQLAlchemy connection string to use to connect to the
 # slave database. (string value)
@@ -1245,7 +1251,10 @@ connection=mysql://keystone:{{ openstack_keystone_dbpass }}@{{ openstack_keyston
 
 # Memcache servers in the format of "host:port". (list value)
 #servers=localhost:11211
+
+{% if inventory_hostname in groups['openstack-controller-nodes'] %}
 servers=localhost:11211
+{% endif %}
 
 # Number of seconds memcached server is considered dead before
 # it is tried again. This is used by the key value store
@@ -1339,7 +1348,10 @@ servers=localhost:11211
 # An implementation of the backend for persisting revocation
 # events. (string value)
 #driver=keystone.contrib.revoke.backends.kvs.Revoke
+
+{% if inventory_hostname in groups['openstack-controller-nodes'] %}
 driver = keystone.contrib.revoke.backends.sql.Revoke
+{% endif %}
 
 # This value (calculated in seconds) is added to token
 # expiration before a revocation event may be removed from the
@@ -1543,11 +1555,17 @@ driver = keystone.contrib.revoke.backends.sql.Revoke
 # "keystone.token.providers.[pkiz|pki|uuid].Provider". The
 # default provider is uuid. (string value)
 #provider=<None>
+
+{% if inventory_hostname in groups['openstack-controller-nodes'] %}
 provider = keystone.token.providers.uuid.Provider
+{% endif %}
 
 # Token persistence backend driver. (string value)
 #driver=keystone.token.persistence.backends.sql.Token
+
+{% if inventory_hostname in groups['openstack-controller-nodes'] %}
 driver = keystone.token.persistence.backends.sql.Token
+{% endif %}
 
 # Toggle for token system caching. This has no effect unless
 # global caching is enabled. (boolean value)
