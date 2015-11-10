@@ -1,10 +1,10 @@
 ---
 # Basic Environment Configurations
-- name: openstack_basic | restarting mysql
-  service:
-    name: mysql
-    state: restarted
-  ignore_errors: yes
+#- name: openstack_basic | restarting mysql
+#  service:
+#    name: mysql
+#    state: restarted
+#  ignore_errors: yes
 
 - name: openstack_basic | cleaning up ntp dhcp configurations
   file:

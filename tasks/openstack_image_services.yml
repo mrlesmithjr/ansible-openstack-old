@@ -70,15 +70,3 @@
 #    dest: ./cirros-0.3.4-x86_64-disk.img
 #  delegate_to: localhost
 #  sudo: false
-
-- name: openstack_image_services | uploading Cirros Cloud Image
-  glance_image:
-    auth_url: "{{ openstack_glance_url }}:35357/v2.0/"
-    login_username: admin
-    login_password: "{{ openstack_admin_pass }}"
-    login_tenant_name: admin
-    name: cirros
-    container_format: bare
-    disk_format: qcow2
-    state: present
-    copy_from: http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-disk.img

@@ -25,3 +25,15 @@
 
 - include: openstack_image_services.yml
   when: inventory_hostname in groups['openstack-controller-nodes']
+
+- include: openstack_compute_services.yml
+  when: inventory_hostname in groups['openstack-controller-nodes']
+
+- include: openstack_compute.yml
+  when: inventory_hostname in groups['openstack-compute-nodes']
+
+- include: openstack_neutron_controller_nodes.yml
+  when: openstack_networking  == "neutron" and inventory_hostname in groups['openstack-controller-nodes']
+
+- include: openstack_neutron_network_nodes.yml
+  when: openstack_networking  == "neutron" and inventory_hostname in groups['openstack-network-nodes']

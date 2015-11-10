@@ -12,42 +12,63 @@ openstack_dash_dbpass: []  #Database password for the dashboard
 openstack_debian_repository: 'deb http://ubuntu-cloud.archive.canonical.com/ubuntu trusty-updates/{{ openstack_release }} main'
 openstack_demo_email: 'demo@{{ pri_domain_name }}'  #defines demo users email
 openstack_demo_pass: []  #Password of user demo
-openstack_glance_dbhost: localhost  #defines glance db host
+openstack_glance_dbhost: '{{ openstack_services_vip }}'  #defines glance db host
 openstack_glance_dbpass: []  #Database password for Image Service
 openstack_glance_pass: []  #Password of Image Service user glance
-openstack_glance_url: http://glance  #http://glance.{{ pri_domain_name }}
+openstack_glance_url: 'http://{{ openstack_services_vip }}'  #http://glance.{{ pri_domain_name }}
 openstack_glance_verbose_logging: false  #defines if glance should enable verbose logging for troubleshooting
 openstack_heat_dbpass: []  #Database password for the Orchestration service
 openstack_heat_pass: []  #Password of Orchestration service user heat
-openstack_keystone_dbhost: localhost  #defines keystone db host
+openstack_instance_tunnel_ip: []  #define interface address for tunnel interface....ex. {{ ansible_eth2.ipv4.address }}
+openstack_keystone_dbhost: '{{ openstack_services_vip }}'  #defines keystone db host
 openstack_keystone_dbpass: []  #Database password of Identity service
 openstack_keystone_default_region: regionOne
 openstack_keystone_endpoints:
+  - service_name: glance
+    public_url: "{{ openstack_glance_url }}:9292"
+    internal_url: "{{ openstack_glance_url }}:9292"
+    admin_url: "{{ openstack_glance_url }}:9292"
   - service_name: keystone
     public_url: "{{ openstack_keystone_url }}:5000/v2.0"
     internal_url: "{{ openstack_keystone_url }}:5000/v2.0"
     admin_url: "{{ openstack_keystone_url }}:35357/v2.0"
-  - service_name: glance
-    public_url: "{{ openstack_glance_url }}:9292/"
-    internal_url: "{{ openstack_glance_url }}:9292/"
-    admin_url: "{{ openstack_glance_url }}:9292/"
+  - service_name: neutron
+    public_url: "{{ openstack_neutron_url }}:9696"
+    internal_url: "{{ openstack_neutron_url }}:9696"
+    admin_url: "{{ openstack_neutron_url }}:9696"
+  - service_name: nova
+    public_url: "{{ openstack_nova_url }}:8774/v2/%(tenant_id)s"
+    internal_url: "{{ openstack_nova_url }}:8774/v2/%(tenant_id)s"
+    admin_url: "{{ openstack_nova_url }}:8774/v2/%(tenant_id)s"
 openstack_keystone_roles:
   - name: admin
     user: admin
     tenant: admin
-  - name: _member_
-    user: demo
-    tenant: demo
   - name: admin
     user: glance
     tenant: service
+  - name: admin
+    user: neutron
+    tenant: service
+  - name: admin
+    user: nova
+    tenant: service
+  - name: _member_
+    user: demo
+    tenant: demo
 openstack_keystone_services:
-  - name: keystone
-    description: "OpenStack Identity"
-    service_type: identity
   - name: glance
     description: "OpenStack Image Service"
     service_type: image
+  - name: keystone
+    description: "OpenStack Identity"
+    service_type: identity
+  - name: neutron
+    description: "OpenStack Networking"
+    service_type: network
+  - name: nova
+    description: "OpenStack Compute"
+    service_type: compute
 openstack_keystone_temp_admin_token: []  #Key for initial setup of keystone
 openstack_keystone_tenants:
   - name: admin
@@ -56,7 +77,7 @@ openstack_keystone_tenants:
     description: "Demo Tenant"
   - name: service
     description: "Service Tenant"
-openstack_keystone_url: http://keystone  #http://keystone.{{ pri_domain_name }}
+openstack_keystone_url: 'http://{{ openstack_services_vip }}'  #http://keystone.{{ pri_domain_name }}
 openstack_keystone_users:
   - name: admin
     password: "{{ openstack_admin_pass }}"
@@ -69,14 +90,30 @@ openstack_keystone_users:
   - name: glance
     password: "{{ openstack_glance_pass }}"
     tenant: service
+  - name: neutron
+    password: "{{ openstack_neutron_pass }}"
+    tenant: service
+  - name: nova
+    password: "{{ openstack_nova_pass }}"
+    tenant: service
 openstack_keystone_verbose_logging: false  #defines if keystone should enable verbose logging for troubleshooting
+openstack_networking: neutron  #defines networking to use...neutron or nova (legacy)
+openstack_neutron_dbhost: '{{ openstack_services_vip }}'  #defines neutron db host
 openstack_neutron_dbpass: []  #Database password for the Networking service
 openstack_neutron_pass: []  #Password of Networking service user neutron
+openstack_neutron_url: 'http://{{ openstack_services_vip }}'
+openstack_neutron_verbose_logging: false  #defines if neutron should enable verbose logging for troubleshooting
+openstack_nova_dbhost: '{{ openstack_services_vip }}'  #defines nova db host
 openstack_nova_dbpass: []  #Database password for Compute service
+openstack_nova_my_ip: '{{ ansible_default_ipv4.address }}'  #defines the my_ip variable in nova
 openstack_nova_pass: []  #Password of Compute service user nova
+openstack_nova_url: 'http://{{ openstack_services_vip }}'  #http://nova.{{ pri_domain_name }}
+openstack_nova_virt_type: kvm  #Nova virtualization Type, set to KVM if supported and QEMU if not
+openstack_rabbit_host: '{{ openstack_services_vip }}'  #Defines RabbitMQ host
 openstack_rabbit_pass: []  #Password of user of RabbitMQ
-openstack_rabbit_user: openstack  #User  of RabbitMQ
+openstack_rabbit_user: openstack  #User of RabbitMQ
 openstack_release: kilo  #defines openstack release to install
+openstack_services_vip: []  #define VIP or common IP|FQDN name for all services to communicate with.
 openstack_trove_dbpass: []  #Database password of Database service
 openstack_trove_pass: []  #Password of Database Service user trove
 pri_domain_name: example.org  #defines primary domain name of site.
