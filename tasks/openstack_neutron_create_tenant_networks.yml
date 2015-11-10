@@ -22,12 +22,13 @@
     state: present
   with_items: openstack_neutron_tenant_network_info
 
-- name: openstack_neutron_create_tenant_networks | creating tenant router(s)
-  neutron_router:
-#    auth_url: "{{ openstack_keystone_url }}:35357/v2.0/"
-    login_tenant_name: "{{ item.tenant_name }}"
-    login_username: "{{ item.username }}"
-    login_password: "{{ item.password }}"
-    name: "{{ item.router_name }}"
-    state: present
-  with_items: openstack_neutron_tenant_network_info
+# Creating routers is failing at this time
+#- name: openstack_neutron_create_tenant_networks | creating tenant router(s)
+#  neutron_router:
+##    auth_url: "{{ openstack_keystone_url }}:35357/v2.0/"
+#    login_tenant_name: "{{ item.tenant_name }}"
+#    login_username: "{{ item.username }}"
+#    login_password: "{{ item.password }}"
+#    name: "{{ item.router_name }}"
+#    state: present
+#  with_items: openstack_neutron_tenant_network_info

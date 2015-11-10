@@ -8,7 +8,7 @@
 - include: openstack_identity_services.yml
   when: inventory_hostname in groups['openstack-controller-nodes']
 
-- include: openstack_keystone_tenants.yml
+- include: openstack_keystone_tenants.yml  #Tenants are now projects
   when: inventory_hostname in groups['openstack-controller-nodes']
 
 - include: openstack_keystone_users.yml
@@ -54,4 +54,9 @@
 - include: openstack_horizon.yml
   tags:
     - horizon
-  when: openstack_networking  == "neutron" and inventory_hostname in groups['openstack-controller-nodes']
+  when: (openstack_horizon_install is defined and openstack_horizon_install) and inventory_hostname in groups['openstack-controller-nodes']
+
+- include: openstack_heat.yml
+  tags:
+    - heat
+  when: (openstack_heat_install is defined and openstack_heat_install) and inventory_hostname in groups['openstack-controller-nodes']
