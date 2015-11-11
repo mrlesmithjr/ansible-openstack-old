@@ -17,6 +17,7 @@ openstack_glance_dbpass: []  #Database password for Image Service
 openstack_glance_pass: []  #Password of Image Service user glance
 openstack_glance_url: 'http://{{ openstack_services_vip }}'  #http://glance.{{ pri_domain_name }}
 openstack_glance_verbose_logging: false  #Defines if glance should enable verbose logging for troubleshooting
+openstack_group_based_policy_install: false  #Defines if Group Based Policy Should be installed. https://wiki.openstack.org/wiki/GroupBasedPolicy/InstallUbuntu
 openstack_heat_dbhost: '{{ openstack_services_vip }}'  #Defines heat db host
 openstack_heat_dbpass: []  #Database password for the Orchestration service
 openstack_heat_domain_pass: []  #Password for Heat domain in Identity service
@@ -147,11 +148,11 @@ openstack_neutron_external_network_info:  #Defines external networks and subnets
     router_external: true
     shared: false
     subnet_name: ext-subnet
-    cidr: 203.0.113.0/24
-    pool_start: 203.0.113.101
-    pool_end: 203.0.113.200
+    cidr: 172.16.24.0/24
+    pool_start: 172.16.24.25
+    pool_end: 172.16.24.50
     enable_dhcp: false
-    gateway: 203.0.113.1
+    gateway: 172.16.24.1
 openstack_neutron_pass: []  #Password of Networking service user neutron
 openstack_neutron_tenant_network_info:
   - name: demo

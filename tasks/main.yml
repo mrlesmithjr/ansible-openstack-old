@@ -60,3 +60,8 @@
   tags:
     - heat
   when: (openstack_heat_install is defined and openstack_heat_install) and inventory_hostname in groups['openstack-controller-nodes']
+
+- include: openstack_group_based_policy.yml
+  tags:
+    - group_based_policy
+  when: (openstack_group_based_policy_install is defined and openstack_group_based_policy_install) and inventory_hostname in groups['openstack-controller-nodes']

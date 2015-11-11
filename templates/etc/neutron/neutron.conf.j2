@@ -85,15 +85,30 @@ core_plugin = ml2
 # Example: service_plugins = router,firewall,lbaas,vpnaas,metering
 
 {% if inventory_hostname in groups['openstack-compute-nodes'] %}
+{%   if (openstack_group_based_policy_install is defined and not openstack_group_based_policy_install) or openstack_group_based_policy_install is not defined %}
 service_plugins = router
+{%   endif %}
+{%   if openstack_group_based_policy_install is defined and openstack_group_based_policy_install %}
+service_plugins = router,group_policy,servicechain
+{%   endif %}
 {% endif %}
 
 {% if inventory_hostname in groups['openstack-controller-nodes'] %}
+{%   if (openstack_group_based_policy_install is defined and not openstack_group_based_policy_install) or openstack_group_based_policy_install is not defined %}
 service_plugins = router
+{%   endif %}
+{%   if openstack_group_based_policy_install is defined and openstack_group_based_policy_install %}
+service_plugins = router,group_policy,servicechain
+{%   endif %}
 {% endif %}
 
 {% if inventory_hostname in groups['openstack-network-nodes'] %}
+{%   if (openstack_group_based_policy_install is defined and not openstack_group_based_policy_install) or openstack_group_based_policy_install is not defined %}
 service_plugins = router
+{%   endif %}
+{%   if openstack_group_based_policy_install is defined and openstack_group_based_policy_install %}
+service_plugins = router,group_policy,servicechain
+{%   endif %}
 {% endif %}
 
 # Paste configuration file
@@ -858,6 +873,11 @@ connection = mysql://neutron:{{ openstack_neutron_dbpass }}@{{ openstack_neutron
 # If set, use this value for pool_timeout with sqlalchemy
 # pool_timeout = 10
 
+[group_policy]
+{% if openstack_group_based_policy_install is defined and openstack_group_based_policy_install %}
+policy_drivers = implicit_policy, resource_mapping
+{% endif %}
+
 [nova]
 # Name of the plugin to load
 # auth_plugin =
@@ -1167,3 +1187,8 @@ rabbit_password = {{ openstack_rabbit_pass }}
 # Deprecated, use rpc_backend=kombu+memory or rpc_backend=fake (boolean value)
 # Deprecated group/name - [DEFAULT]/fake_rabbit
 # fake_rabbit = false
+
+[servicechain]
+{% if openstack_group_based_policy_install is defined and openstack_group_based_policy_install %}
+servicechain_drivers = simplechain_driver
+{% endif %}

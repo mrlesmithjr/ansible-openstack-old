@@ -147,16 +147,12 @@ tunnel_id_ranges = 1:1000
 
 [ovs]
 {% if inventory_hostname in groups['openstack-compute-nodes'] %}
-{%   if openstack_instance_tunnel_ip is defined %}
 local_ip = {{ openstack_instance_tunnel_ip }}
-{%   endif %}
 {% endif %}
 
 {% if inventory_hostname in groups['openstack-network-nodes'] %}
-{%   if openstack_instance_tunnel_ip is defined %}
 local_ip = {{ openstack_instance_tunnel_ip }}
 bridge_mappings = external:br-ex
-{%   endif %}
 {% endif %}
 
 [securitygroup]

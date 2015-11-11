@@ -97,5 +97,6 @@
 - name: openstack_neutron_network_nodes | adding port to Openvswitch Bridge (br-ex)
   openvswitch_port:
     bridge: br-ex
-    port: "{{ openstack_instance_tunnel_int }}"
+#    port: "{{ openstack_instance_tunnel_int }}"
+    port: "{{ openstack_ext_br_int }}"
     state: present

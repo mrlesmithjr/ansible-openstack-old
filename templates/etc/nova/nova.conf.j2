@@ -19,6 +19,8 @@ vnc_enabled=True
 vncserver_listen=0.0.0.0
 vncserver_proxyclient_address={{ openstack_nova_my_ip }}
 novncproxy_base_url={{ openstack_keystone_url }}:6080/vnc_auto.html
+vif_plugging_timeout=10
+vif_plugging_is_fatal=False
 {%   if openstack_networking is defined and openstack_networking == "neutron" %}
 network_api_class = nova.network.neutronv2.api.API
 security_group_api = neutron
