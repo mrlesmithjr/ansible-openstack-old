@@ -1,0 +1,10 @@
+---
+- src: https://github.com/mrlesmithjr/ansible-apache2.git
+- src: https://github.com/mrlesmithjr/ansible-base.git
+- src: https://github.com/mrlesmithjr/ansible-bootstrap.git
+- src: https://github.com/mrlesmithjr/ansible-config-interfaces.git
+- src: https://github.com/mrlesmithjr/ansible-mariadb-galera-cluster.git
+- src: https://github.com/mrlesmithjr/ansible-mariadb-mysql.git
+- src: https://github.com/mrlesmithjr/ansible-memcached.git
+- src: https://github.com/mrlesmithjr/ansible-ntp.git
+- src: https://github.com/mrlesmithjr/ansible-rabbitmq.git

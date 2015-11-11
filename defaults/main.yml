@@ -140,21 +140,43 @@ openstack_metadata_secret: []  #Defines shared metadata secret for metadata serv
 openstack_networking: neutron  #Defines networking to use...neutron or nova (legacy)
 openstack_neutron_dbhost: '{{ openstack_services_vip }}'  #Defines neutron db host
 openstack_neutron_dbpass: []  #Database password for the Networking service
-openstack_neutron_external_network_info:  #Defines external networks and subnets to create
-  - name: ext
-    network_name: ext-net
-    provider_network_type: flat
-    provider_physical_network: external
-    router_external: true
-    shared: false
-    subnet_name: ext-subnet
-    cidr: 172.16.24.0/24
-    pool_start: 172.16.24.25
-    pool_end: 172.16.24.50
-    enable_dhcp: false
-    gateway: 172.16.24.1
+openstack_neutron_external_networks: #Define external networking resources
+  - name: external-networks
+    login_password: "{{ openstack_admin_pass }}"
+    login_username: admin
+    login_tenant_name: admin
+    region_name: #Name of the region
+    networks:  #define networks to create
+      - name: ext-net #Name to be assigned to the nework
+        admin_state_up: true #Whether the state should be marked as up or down
+        provider_network_type: flat #The type of the network to be created, flat, gre, vxlan, vlan, local
+        provider_physical_network: external #The physical network which would realize the virtual network for flat and vlan networks.
+        provider_segmentation_id: #The id that has to be assigned to the network, in case of vlan networks that would be vlan id, for gre the tunnel id and for vxlan the VNI
+        router_external: true #If 'yes', specifies that the virtual network is a external network (public)
+        shared: false #Whether this network is shared or not
+        state: present #Indicate desired state of the resource
+    router_interfaces:
+      - router_name: external-router #Name of the router to which the subnet's interface should be attached
+        subnet_name: ext-subnet #Name of the subnet to whose interface should be attached to the router
+        state: present #Indicate desired state of the resource
+    routers: #Defines routers to create
+      - name: external-router #Name to be give to the router
+        admin_state_up: true #desired admin state of the created router
+        state: present #Indicate desired state of the resource
+    subnets:  #define subnets to create by using networks created above
+      - name: ext-subnet
+        allocation_pool_end: 172.16.24.50 #From the subnet pool the last IP that should be assigned to the virtual machines
+        allocation_pool_start: 172.16.24.25 #From the subnet pool the starting address from which the IP should be allocated
+        cidr: 172.16.24.0/24 #The CIDR representation of the subnet that should be assigned to the subnet
+        dns_nameservers: 8.8.8.8,8.8.4.4 #DNS nameservers for this subnet, comma-separated
+        enable_dhcp: false #Whether DHCP should be enabled for this subnet
+        gateway_ip: 172.16.24.2 #The ip that would be assigned to the gateway for this subnet
+        ip_version: 4 #The IP version of the subnet 4 or 6
+        network_name: ext-net  #Name of the network to which the subnet should be attached
+        no_gateway: false #If "true", no gateway will be created for this subnet
+        state: present #Indicate desired state of the resource
 openstack_neutron_pass: []  #Password of Networking service user neutron
-openstack_neutron_tenant_network_info:
+openstack_neutron_tenant_network_info:  #Define tenant networks, subnets and routers to create
   - name: demo
     tenant_name: demo
     username: demo

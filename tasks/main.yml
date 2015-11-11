@@ -41,14 +41,16 @@
 - include: openstack_neutron_compute_nodes.yml
   when: openstack_networking  == "neutron" and inventory_hostname in groups['openstack-compute-nodes']
 
-- include: openstack_neutron_create_external_networks.yml
+- include: openstack_neutron_manage_external_networks.yml
   tags:
     - create_neutron_external_networks
+    - neutron_networks
   when: openstack_networking  == "neutron" and inventory_hostname in groups['openstack-controller-nodes']
 
 - include: openstack_neutron_create_tenant_networks.yml
   tags:
     - create_neutron_tenant_networks
+    - neutron_networks
   when: openstack_networking  == "neutron" and inventory_hostname in groups['openstack-controller-nodes']
 
 - include: openstack_horizon.yml
