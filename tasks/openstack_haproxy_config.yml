@@ -1,0 +1,32 @@
+---
+- name: openstack_haproxy_config | configuring haproxy
+  template:
+    src: etc/haproxy/haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+    owner: root
+    group: root
+    mode: 0644
+  register: haproxy_reconfigured
+  notify: restart haproxy
+
+#- name: openstack_haproxy_config | configuring VIP on pacemaker
+#  pacemaker: >
+#    primitive p_api-ip ocf:heartbeat:IPaddr2
+#    params ip="{{ openstack_services_vip }}" cidr_netmask="{{ openstack_services_vip_cidr }}" nic="{{ openstack_services_vip_int }}"
+#    op monitor interval="30s"
+#    commit=yes
+#  when: openstack_multi_controller_setup is defined and openstack_multi_controller_setup
+
+#- name: openstack_haproxy_config | configuring HAProxy pacemaker configuration
+#  pacemaker: >
+#    primitive haproxyLB ocf:heartbeat:haproxy
+#    params conffile=/etc/haproxy/haproxy.cfg
+#    op monitor interval="30s"
+#    commit=yes
+#  when: openstack_multi_controller_setup is defined and openstack_multi_controller_setup
+
+- name: openstack_haproxy_config | restarting haproxy if reconfigured
+  service:
+    name: haproxy
+    state: restarted
+  when: haproxy_reconfigured.changed

@@ -1,8 +1,14 @@
 ---
-#- name: openstack_rabbitmq_config | configuring RabbitMQ on Controller Node(s)
-#  rabbitmq_user:
-#    user: guest
-#    password: "{{ openstack_rabbit_pass }}"
+- name: openstack_rabbitmq_config | creating RabbitMQ user
+  rabbitmq_user:
+    user: "{{ openstack_rabbit_user }}"
+    password: "{{ openstack_rabbit_pass }}"
+    vhost: "/"
+    configure_priv: ".*"
+    read_priv: ".*"
+    write_priv: ".*"
+    state: present
+  when: (openstack_multi_controller_setup is defined and not openstack_multi_controller_setup) or openstack_multi_controller_setup is not defined
 
 - name: openstack_rabbitmq_config | creating RabbitMQ user
   rabbitmq_user:
@@ -13,3 +19,5 @@
     read_priv: ".*"
     write_priv: ".*"
     state: present
+  run_once: yes
+  when: openstack_multi_controller_setup is defined and openstack_multi_controller_setup

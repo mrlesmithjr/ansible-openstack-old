@@ -47,6 +47,7 @@
   stat:
     path: /etc/heat/heat_domain_created
   register: heat_domain_created
+  always_run: yes
 
 - name: openstack_heat | creating heat domain
   shell: ". /root/admin-openrc.sh heat-keystone-setup-domain --stack-user-domain-name heat_user_domain --stack-domain-admin heat_domain_admin --stack-domain-admin-password {{ openstack_heat_domain_pass }}"
@@ -69,6 +70,7 @@
   stat:
     path: /etc/heat/heat_populated
   register: heat_is_populated
+  always_run: yes
 
 - name: openstack_heat | populating heat
   command: su -s /bin/sh -c "heat-manage db_sync" heat

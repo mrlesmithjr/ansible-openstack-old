@@ -1,0 +1,23 @@
+---
+- name: manage_glance_images | uploading glance images
+  glance_image:
+    login_username: admin
+    login_password: "{{ openstack_admin_pass }}"
+    login_tenant_name: admin
+    name: "{{ item.name }}"
+    container_format: "{{ item.container_format }}"
+    disk_format: "{{ item.disk_format }}"
+    state: present
+    copy_from: "{{ item.image_url }}"
+  with_items: openstack_glance_images
+  when: (openstack_glance_manage_images is defined and openstack_glance_manage_images) and (item.installed is defined and item.installed)
+
+- name: manage_glance_images | removing glance images
+  glance_image:
+    login_username: admin
+    login_password: "{{ openstack_admin_pass }}"
+    login_tenant_name: admin
+    name: "{{ item.name }}"
+    state: absent
+  with_items: openstack_glance_images
+  when: (openstack_glance_manage_images is defined and openstack_glance_manage_images) and (item.installed is defined and not item.installed)

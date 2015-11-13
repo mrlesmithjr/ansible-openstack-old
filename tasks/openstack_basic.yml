@@ -26,6 +26,15 @@
 - name: openstack_basic | updated /etc/hosts
   lineinfile:
     dest: /etc/hosts
-    regexp: "^{{ hostvars[item].ansible_ssh_host }}"
-    line: "{{ hostvars[item].ansible_ssh_host }}    {{ hostvars[item].inventory_hostname }}"
-  with_items: groups['all']
+    regexp: '.*{{ item }}$'
+    line: "{{ hostvars[item].ansible_eth0.ipv4.address }} {{ item }}"
+    state: present
+  with_items: groups['openstack-nodes']
+
+- name: openstack_haproxy_config | allowing VIP to come up on nodes
+  sysctl:
+    name: "net.ipv4.ip_nonlocal_bind"
+    value: 1
+    state: present
+    reload: yes
+  when: (openstack_haproxy_config is defined and openstack_haproxy_config) and (inventory_hostname in groups['openstack-controller-nodes'] or inventory_hostname in groups['openstack-haproxy-nodes'])

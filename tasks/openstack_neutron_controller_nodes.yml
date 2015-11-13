@@ -3,6 +3,14 @@
   mysql_db:
     name: neutron
     state: present
+  when: (openstack_multi_controller_setup is defined and not openstack_multi_controller_setup) or openstack_multi_controller_setup is not defined
+
+- name: openstack_neutron_controller_nodes | creating Neutron DB
+  mysql_db:
+    name: neutron
+    state: present
+  run_once: yes
+  when: openstack_multi_controller_setup is defined and openstack_multi_controller_setup
 
 - name: openstack_neutron_controller_nodes | granting permissions to Nova DB
   mysql_user:
@@ -14,6 +22,20 @@
   with_items:
     - localhost
     - '%'
+  when: (openstack_multi_controller_setup is defined and not openstack_multi_controller_setup) or openstack_multi_controller_setup is not defined
+
+- name: openstack_neutron_controller_nodes | granting permissions to Nova DB
+  mysql_user:
+    name: neutron
+    password: "{{ openstack_neutron_dbpass }}"
+    priv: "neutron.*:ALL"
+    host: "{{ item }}"
+    state: present
+  with_items:
+    - localhost
+    - '%'
+  run_once: yes
+  when: openstack_multi_controller_setup is defined and openstack_multi_controller_setup
 
 - name: openstack_neutron_controller_nodes | installing Neutron packages
   apt:
@@ -48,12 +70,19 @@
   stat:
     path: /etc/neutron/neutron_populated
   register: neutron_is_populated
+  always_run: yes
 
 - name: openstack_neutron_controller_nodes | populating neutron
   command: su -s /bin/sh -c "neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/ml2/ml2_conf.ini upgrade head" neutron
   register: neutron_populated
-  when: not neutron_is_populated.stat.exists
+  when: not neutron_is_populated.stat.exists and ((openstack_multi_controller_setup is defined and not openstack_multi_controller_setup) or openstack_multi_controller_setup is not defined)
 
+- name: openstack_neutron_controller_nodes | populating neutron
+  command: su -s /bin/sh -c "neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/ml2/ml2_conf.ini upgrade head" neutron
+  register: neutron_populated
+  run_once: yes
+  when: openstack_multi_controller_setup is defined and openstack_multi_controller_setup
+  
 - name: openstack_neutron_controller_nodes | marking neutron as populated
   file:
     path: /etc/neutron/neutron_populated

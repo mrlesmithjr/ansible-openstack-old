@@ -534,6 +534,10 @@ nova_url = {{ openstack_nova_url }}:8774/v2
 
 # RabbitMQ HA cluster host:port pairs. (list value)
 # rabbit_hosts=$rabbit_host:$rabbit_port
+{% if openstack_multi_controller_setup is defined and openstack_multi_controller_setup %}
+rabbit_hosts={% for host in groups['openstack-controller-nodes'] %}{{ host }}:5672{% if not loop.last %},{% endif %}{% endfor %}
+
+{% endif %}
 
 # Connect over SSL for RabbitMQ. (boolean value)
 # rabbit_use_ssl=false
@@ -566,6 +570,10 @@ nova_url = {{ openstack_nova_url }}:8774/v2
 # this option, you must wipe the RabbitMQ database. (boolean
 # value)
 # rabbit_ha_queues=false
+{% if openstack_multi_controller_setup is defined and openstack_multi_controller_setup %}
+rabbit_durable_queues=true
+rabbit_ha_queues=true
+{% endif %}
 
 # If passed, use a fake RabbitMQ provider. (boolean value)
 # fake_rabbit=false
@@ -1121,6 +1129,10 @@ rabbit_host = {{ openstack_rabbit_host }}
 # RabbitMQ HA cluster host:port pairs. (list value)
 # Deprecated group/name - [DEFAULT]/rabbit_hosts
 # rabbit_hosts = $rabbit_host:$rabbit_port
+{% if openstack_multi_controller_setup is defined and openstack_multi_controller_setup %}
+rabbit_hosts={% for host in groups['openstack-controller-nodes'] %}{{ host }}:5672{% if not loop.last %},{% endif %}{% endfor %}
+
+{% endif %}
 
 # Connect over SSL for RabbitMQ. (boolean value)
 # Deprecated group/name - [DEFAULT]/rabbit_use_ssl
@@ -1183,6 +1195,10 @@ rabbit_password = {{ openstack_rabbit_pass }}
 # must wipe the RabbitMQ database. (boolean value)
 # Deprecated group/name - [DEFAULT]/rabbit_ha_queues
 # rabbit_ha_queues = false
+{% if openstack_multi_controller_setup is defined and openstack_multi_controller_setup %}
+rabbit_durable_queues=true
+rabbit_ha_queues=true
+{% endif %}
 
 # Deprecated, use rpc_backend=kombu+memory or rpc_backend=fake (boolean value)
 # Deprecated group/name - [DEFAULT]/fake_rabbit

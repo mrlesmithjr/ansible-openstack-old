@@ -47,6 +47,7 @@
   stat:
     path: /etc/neutron/gbp_tables_imported
   register: gbp_tables_imported
+  always_run: yes
 
 - name: openstack_group_based_policy | importing GBP tables
   shell: "gbp-db-manage --config-file /etc/neutron/neutron.conf upgrade head"

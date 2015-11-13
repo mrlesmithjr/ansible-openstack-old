@@ -5,6 +5,14 @@
   mysql_db:
     name: keystone
     state: present
+  when: (openstack_multi_controller_setup is defined and not openstack_multi_controller_setup) or openstack_multi_controller_setup is not defined
+
+- name: openstack_identity_services | creating Keystone DB
+  mysql_db:
+    name: keystone
+    state: present
+  run_once: yes
+  when: openstack_multi_controller_setup is defined and openstack_multi_controller_setup
 
 - name: openstack_identity_services | granting permissions to Keystone DB
   mysql_user:
@@ -16,7 +24,21 @@
   with_items:
     - localhost
     - '%'
+  when: (openstack_multi_controller_setup is defined and not openstack_multi_controller_setup) or openstack_multi_controller_setup is not defined
 
+- name: openstack_identity_services | granting permissions to Keystone DB
+  mysql_user:
+    name: keystone
+    password: "{{ openstack_keystone_dbpass }}"
+    priv: "keystone.*:ALL"
+    host: "{{ item }}"
+    state: present
+  with_items:
+    - localhost
+    - '%'
+  run_once: yes
+  when: openstack_multi_controller_setup is defined and openstack_multi_controller_setup
+  
 - name: openstack_identity_services | marking keystone to not auto start after install
   shell: 'echo "manual" > /etc/init/keystone.override'
   args:
@@ -33,6 +55,32 @@
     - python-memcache
     - python-openstackclient
 
+- name: openstack_identity_services | checking for keystone folder for pacemaker
+  stat:
+    path: /usr/lib/ocf/resource.d/openstack
+  register: pacemaker_keystone_dir
+
+- name: openstack_identity_services | creating keystone folder for pacemaker config
+  file:
+    dest: /usr/lib/ocf/resource.d/openstack
+    state: directory
+  when: not pacemaker_keystone_dir.stat.exists
+
+- name: openstack_identity_services | downloading keystone pacemaker config
+  get_url:
+    url: https://git.openstack.org/cgit/openstack/openstack-resource-agents/plain/ocf/keystone
+    dest: /usr/lib/ocf/resource.d/openstack/keystone
+  when: openstack_multi_controller_setup is defined and openstack_multi_controller_setup
+
+- name: openstack_identity_services | setting permissions on keyston pacemaker file
+  file:
+    path: /usr/lib/ocf/resource.d/openstack
+    owner: root
+    group: root
+    mode: 0755
+    recurse: yes
+  when: openstack_multi_controller_setup is defined and openstack_multi_controller_setup
+
 - name: openstack_identity_services | configuring keystone
   template:
     src: etc/keystone/keystone.conf.j2
@@ -42,15 +90,34 @@
     mode: 0644
 #  notify: restart keystone
 
+#- name: openstack_identity_services | configuring pacemaker for keystone identity services
+#  pacemaker: >
+#     primitive p_keystone ocf:openstack:keystone
+#     params config="/etc/keystone/keystone.conf"
+#     os_password="{{ openstack_admin_pass }}"
+#     os_username="admin"
+#     os_tenant_name="admin"
+#     os_auth_url="{{ openstack_keystone_url}}:5000/v2.0/"
+#     op monitor interval="30s" timeout="30s"
+#     commit=yes
+#  when: openstack_multi_controller_setup is defined and openstack_multi_controller_setup
+
 - name: openstack_identity_services | checking if keystone has been populated
   stat:
     path: /etc/keystone/keystone_populated
   register: keystone_is_populated
+  always_run: yes
 
 - name: openstack_identity_services | populating keystone
   command: su -s /bin/sh -c "keystone-manage db_sync" keystone
   register: keystone_populated
-  when: not keystone_is_populated.stat.exists
+  when: not keystone_is_populated.stat.exists and ((openstack_multi_controller_setup is defined and not openstack_multi_controller_setup) or openstack_multi_controller_setup is not defined)
+
+- name: openstack_identity_services | populating keystone
+  command: su -s /bin/sh -c "keystone-manage db_sync" keystone
+  register: keystone_populated
+  run_once: yes
+  when: not keystone_is_populated.stat.exists and (openstack_multi_controller_setup is defined and openstack_multi_controller_setup)
 
 - name: openstack_identity_services | marking keystone as populated
   file:
