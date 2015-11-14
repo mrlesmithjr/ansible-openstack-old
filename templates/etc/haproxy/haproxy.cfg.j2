@@ -45,13 +45,13 @@ listen admin_page 0.0.0.0:{{ haproxy_admin_port }}
 {% endif %}
 
 listen dashboard_cluster
-  bind {{ openstack_services_vip }}:443
+  bind {{ openstack_services_vip }}:80
   balance  source
   option  tcpka
   option  httpchk
   option  tcplog
 {% for host in groups['openstack-controller-nodes'] %}
-  server {{ host }} {{ host }}:443 check inter 2000 rise 2 fall 5
+  server {{ host }} {{ host }}:80 check inter 2000 rise 2 fall 5
 {% endfor %}
 
 listen galera_cluster
@@ -62,13 +62,13 @@ listen galera_cluster
   option tcplog
 {% for host in groups['openstack-controller-nodes'] %}
 {%   if hostvars[host]['mysql_master'] is defined and hostvars[host]['mysql_master'] %}
-  server {{ host }} {{ host }}:3306 inter 2000 rise 2 fall 5
+  server {{ host }} {{ host }}:3306 check inter 2000 rise 2 fall 5
 {%   endif %}
 {%   if hostvars[host]['mysql_master'] is defined and not hostvars[host]['mysql_master'] %}
-  server {{ host }} {{ host }}:3306 inter 2000 rise 2 fall 5
+  server {{ host }} {{ host }}:3306 check inter 2000 rise 2 fall 5
 {%   endif %}
 {%   if hostvars[host]['mysql_master'] is not defined %}
-  server {{ host }} {{ host }}:3306 inter 2000 rise 2 fall 5
+  server {{ host }} {{ host }}:3306 check inter 2000 rise 2 fall 5
 {%   endif %}
 {% endfor %}
 
@@ -89,6 +89,16 @@ listen glance_registry_cluster
   option  tcplog
 {% for host in groups['openstack-controller-nodes'] %}
   server {{ host }} {{ host }}:9191 check inter 2000 rise 2 fall 5
+{% endfor %}
+
+listen heatAPI
+bind {{ openstack_services_vip }}:8004
+balance  source
+option  tcpka
+option  httpchk
+option  tcplog
+{% for host in groups['openstack-controller-nodes'] %}
+server {{ host }} {{ host }}:8004 check inter 2000 rise 2 fall 5
 {% endfor %}
 
 listen keystone_admin_cluster
@@ -176,6 +186,24 @@ listen neutron_api_cluster
   option  tcplog
 {% for host in groups['openstack-controller-nodes'] %}
   server {{ host }} {{ host }}:9696 check inter 2000 rise 2 fall 5
+{% endfor %}
+
+listen rabbitmq_cluster
+  bind {{ openstack_services_vip }}:5672
+  balance  source
+  option  tcpka
+  option  tcplog
+{% for host in groups['openstack-controller-nodes'] %}
+  server {{ host }} {{ host }}:5672 check inter 2000 rise 2 fall 5
+{% endfor %}
+
+listen rabbitmq_cluster-Admin
+  bind {{ openstack_services_vip }}:15672
+  balance  source
+  option  tcpka
+  option  tcplog
+{% for host in groups['openstack-controller-nodes'] %}
+  server {{ host }} {{ host }}:15672 check inter 2000 rise 2 fall 5
 {% endfor %}
 
 listen swift_proxy_cluster

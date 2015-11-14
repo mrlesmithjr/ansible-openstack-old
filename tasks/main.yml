@@ -3,6 +3,8 @@
 - include: openstack_basic.yml
 
 - include: openstack_haproxy_config.yml
+  tags:
+    - config_haproxy
   when: (openstack_haproxy_config is defined and openstack_haproxy_config) and inventory_hostname in groups['openstack-haproxy-nodes']
 
 - include: openstack_rabbitmq_config.yml
@@ -24,6 +26,8 @@
   when: inventory_hostname in groups['openstack-controller-nodes']
 
 - include: openstack_keystone_endpoints.yml
+  tags:
+    - create_keystone_endpoints
   when: inventory_hostname in groups['openstack-controller-nodes']
 
 - include: openstack_image_services.yml
@@ -55,3 +59,21 @@
     - create_neutron_tenant_networks
     - neutron_networks
   when: (config_openstack_neutron_networks is defined and config_openstack_neutron_networks) and openstack_networking  == "neutron" and inventory_hostname in groups['openstack-controller-nodes']
+
+- include: openstack_horizon.yml
+  tags:
+    - horizon
+  when: (openstack_horizon_install is defined and openstack_horizon_install) and inventory_hostname in groups['openstack-controller-nodes']
+
+- include: openstack_heat.yml
+  tags:
+    - heat
+  when: (openstack_heat_install is defined and openstack_heat_install) and inventory_hostname in groups['openstack-controller-nodes']
+
+- include: openstack_group_based_policy.yml
+  tags:
+    - group_based_policy
+  when: (openstack_group_based_policy_install is defined and openstack_group_based_policy_install) and inventory_hostname in groups['openstack-controller-nodes']
+
+- include: openstack_manage_glance_images.yml
+  when: (openstack_glance_manage_images is defined and openstack_glance_manage_images) and inventory_hostname in groups['openstack-controller-nodes']

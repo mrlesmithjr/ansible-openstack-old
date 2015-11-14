@@ -81,8 +81,8 @@
   command: su -s /bin/sh -c "neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/ml2/ml2_conf.ini upgrade head" neutron
   register: neutron_populated
   run_once: yes
-  when: openstack_multi_controller_setup is defined and openstack_multi_controller_setup
-  
+  when: not neutron_is_populated.stat.exists and openstack_multi_controller_setup is defined and openstack_multi_controller_setup
+
 - name: openstack_neutron_controller_nodes | marking neutron as populated
   file:
     path: /etc/neutron/neutron_populated

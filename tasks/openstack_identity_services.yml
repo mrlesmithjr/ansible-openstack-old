@@ -38,7 +38,7 @@
     - '%'
   run_once: yes
   when: openstack_multi_controller_setup is defined and openstack_multi_controller_setup
-  
+
 - name: openstack_identity_services | marking keystone to not auto start after install
   shell: 'echo "manual" > /etc/init/keystone.override'
   args:
@@ -72,7 +72,7 @@
     dest: /usr/lib/ocf/resource.d/openstack/keystone
   when: openstack_multi_controller_setup is defined and openstack_multi_controller_setup
 
-- name: openstack_identity_services | setting permissions on keyston pacemaker file
+- name: openstack_identity_services | setting permissions on keystone pacemaker file
   file:
     path: /usr/lib/ocf/resource.d/openstack
     owner: root

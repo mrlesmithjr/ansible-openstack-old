@@ -16,9 +16,14 @@ rpc_backend=rabbit
 auth_strategy=keystone
 my_ip={{ openstack_nova_my_ip }}
 vnc_enabled=True
+{% if openstack_services_vip is defined %}
 vncserver_listen=0.0.0.0
+{% endif %}
+{% if openstack_services_vip is not defined %}
+vncserver_listen={{ openstack_nova_my_ip }}
+{% endif %}
 vncserver_proxyclient_address={{ openstack_nova_my_ip }}
-novncproxy_base_url={{ openstack_keystone_url }}:6080/vnc_auto.html
+novncproxy_base_url=http://{{ openstack_services_vip }}:6080/vnc_auto.html
 vif_plugging_timeout=10
 vif_plugging_is_fatal=False
 {%   if openstack_networking is defined and openstack_networking == "neutron" %}
@@ -33,8 +38,14 @@ firewall_driver = nova.virt.firewall.NoopFirewallDriver
 rpc_backend=rabbit
 auth_strategy=keystone
 my_ip={{ openstack_nova_my_ip }}
+{% if openstack_services_vip is defined %}
+vncserver_listen=0.0.0.0
+vncserver_proxyclient_address={{ openstack_services_vip }}
+{% endif %}
+{% if openstack_services_vip is not defined %}
 vncserver_listen={{ openstack_nova_my_ip }}
 vncserver_proxyclient_address={{ openstack_nova_my_ip }}
+{% endif %}
 {%   if openstack_networking is defined and openstack_networking == "neutron" %}
 network_api_class = nova.network.neutronv2.api.API
 security_group_api = neutron

@@ -35,7 +35,12 @@ password = {{ openstack_neutron_pass }}
 # nova_metadata_ip = 127.0.0.1
 
 {% if inventory_hostname in groups['openstack-network-nodes'] %}
+{%   if openstack_services_vip_fqdn is defined %}
+nova_metadata_ip = {{ openstack_services_vip_fqdn }}
+{%   endif %}
+{%   if openstack_services_vip_fqdn is not defined %}
 nova_metadata_ip = {{ openstack_services_vip }}
+{%   endif %}
 {% endif %}
 
 # TCP Port used by Nova metadata server

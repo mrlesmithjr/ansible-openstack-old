@@ -151,7 +151,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 #OPENSTACK_HOST = "127.0.0.1"
 
 {% if inventory_hostname in groups['openstack-controller-nodes'] %}
-OPENSTACK_HOST = "{{ openstack_services_vip }}"
+OPENSTACK_HOST = "{{ openstack_services_vip_fqdn }}"
 {% endif %}
 
 OPENSTACK_KEYSTONE_URL = "http://%s:5000/v2.0" % OPENSTACK_HOST

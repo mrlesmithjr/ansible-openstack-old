@@ -57,6 +57,8 @@
     owner: root
     group: root
     mode: 0644
+  tags:
+    - configure_nova
   notify:
     - restart nova-api
     - restart nova-cert
@@ -80,7 +82,7 @@
   command: su -s /bin/sh -c "nova-manage db sync" nova
   register: nova_populated
   run_once: yes
-  when: openstack_multi_controller_setup is defined and openstack_multi_controller_setup
+  when: not nova_is_populated.stat.exists and openstack_multi_controller_setup is defined and openstack_multi_controller_setup
 
 - name: openstack_compute_services | marking nova as populated
   file:

@@ -6,7 +6,9 @@ This role is to provision out a complete OpenStack (Kilo) deployment. Including 
 Requirements
 ------------
 
-All Ansible requirements are included in the requirements.yml file.
+You must define an IP address and DNS FQDN to be used for Load Balancing and services to connect to. These vars are defined in openstack_services_vip and openstack_services_vip_fqdn
+
+All additional Ansible requirements are included in the requirements.yml file.
 ````
 sudo ansible-galaxy install -r requirements.yml
 ````
@@ -18,6 +20,12 @@ Role Variables
 ---
 # defaults file for ansible-openstack
 # generate passwords and keys using 'openssl rand -hex 10'
+config_openstack_neutron_networks: false  #defines if networks in openstack_neutron_external_networks and openstack_neutron_tenant_networks are configured
+enable_haproxy_admin_page: true
+enable_haproxy_remote_syslog: true
+haproxy_admin_user: admin
+haproxy_admin_password: admin
+haproxy_admin_port: 9090
 mysql_root_password: []  #Root password for the database
 openstack_admin_email: 'admin@{{ pri_domain_name }}'  #Defines admin users email
 openstack_admin_pass: []  #Password of user admin
@@ -29,24 +37,43 @@ openstack_dash_dbpass: []  #Database password for the dashboard
 openstack_debian_repository: 'deb http://ubuntu-cloud.archive.canonical.com/ubuntu trusty-updates/{{ openstack_release }} main'
 openstack_demo_email: 'demo@{{ pri_domain_name }}'  #Defines demo users email
 openstack_demo_pass: []  #Password of user demo
-openstack_glance_dbhost: '{{ openstack_services_vip }}'  #Defines glance db host
+openstack_glance_dbhost: "{{ openstack_services_vip_fqdn }}"  #Defines glance db host
 openstack_glance_dbpass: []  #Database password for Image Service
+openstack_glance_images:  #define cloud images to automatically upload to Glance
+  - name: cirros
+    container_format: bare
+    disk_format: qcow2
+    image_url: http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-disk.img
+    installed: true
+  - name: Fedora-22
+    container_format: bare
+    disk_format: qcow2
+    image_url: http://repo.atlantic.net/fedora/linux/releases/22/Cloud/x86_64/Images/Fedora-Cloud-Base-22-20150521.x86_64.qcow2
+    installed: true
+  - name: Ubuntu-14.04
+    container_format: bare
+    disk_format: qcow2
+    image_url: https://cloud-images.ubuntu.com/trusty/current/trusty-server-cloudimg-amd64-disk1.img
+    installed: true
+openstack_glance_manage_images: false  #defines if images should be managed based on openstack_glance_images....this should be ran as part of the playbook as a local task
+# rather than during initial deploy as it will error our and tasks will fail due to services for keystone and glance not being restarted. But can be set to true after the stack is up!!!
 openstack_glance_pass: []  #Password of Image Service user glance
-openstack_glance_url: 'http://{{ openstack_services_vip }}'  #http://glance.{{ pri_domain_name }}
+openstack_glance_url: 'http://{{ openstack_services_vip_fqdn }}'  #http://glance.{{ pri_domain_name }}
 openstack_glance_verbose_logging: false  #Defines if glance should enable verbose logging for troubleshooting
 openstack_group_based_policy_install: false  #Defines if Group Based Policy Should be installed. https://wiki.openstack.org/wiki/GroupBasedPolicy/InstallUbuntu
-openstack_heat_dbhost: '{{ openstack_services_vip }}'  #Defines heat db host
+openstack_haproxy_config: true  #defines if haproxy should be configured on controller nodes....can separate out but installing on controller nodes is common practice and use corosync/pacemaker to handle the VIP.
+openstack_heat_dbhost: '{{ openstack_services_vip_fqdn }}'  #Defines heat db host
 openstack_heat_dbpass: []  #Database password for the Orchestration service
 openstack_heat_domain_pass: []  #Password for Heat domain in Identity service
 openstack_heat_install: true  #Defines if Heat (Orchestration Module) is to be installed
 openstack_heat_pass: []  #Password of Orchestration service user heat
-openstack_heat_url: 'http://{{ openstack_services_vip }}'  #http://heat.{{ pri_domain_name }}
+openstack_heat_url: 'http://{{ openstack_services_vip_fqdn }}'  #http://heat.{{ pri_domain_name }}
 openstack_heat_verbose_logging: false  #Defines if glance should enable verbose logging for troubleshooting
 openstack_horizon_install: true  #Defines if Horizon Dashboard should be installed
 openstack_horizon_remove_ubuntu_theme: false  #Defines if the Ubuntu Horizon theme should be removed and the original Horizon theme restored
 openstack_instance_tunnel_int: []  #Defines interface to assign to OVS br-ex..ex..eth2
 openstack_instance_tunnel_ip: []  #Define interface address for tunnel interface....ex. {{ ansible_eth2.ipv4.address }}
-openstack_keystone_dbhost: '{{ openstack_services_vip }}'  #Defines keystone db host
+openstack_keystone_dbhost: '{{ openstack_services_vip_fqdn }}'  #Defines keystone db host
 openstack_keystone_dbpass: []  #Database password of Identity service
 openstack_keystone_default_region: regionOne
 openstack_keystone_endpoints:
@@ -126,7 +153,7 @@ openstack_keystone_tenants:  #Tenants are now Projects
     description: "Demo Project"
   - name: service
     description: "Service Project"
-openstack_keystone_url: 'http://{{ openstack_services_vip }}'  #http://keystone.{{ pri_domain_name }}
+openstack_keystone_url: 'http://{{ openstack_services_vip_fqdn }}'  #http://keystone.{{ pri_domain_name }}
 openstack_keystone_users:  #Tenants are now Projects
   - name: admin
     password: "{{ openstack_admin_pass }}"
@@ -154,11 +181,12 @@ openstack_keystone_users:  #Tenants are now Projects
     tenant: service
 openstack_keystone_verbose_logging: false  #Defines if keystone should enable verbose logging for troubleshooting
 openstack_metadata_secret: []  #Defines shared metadata secret for metadata services
+openstack_multi_controller_setup: false  #defines if more than 1 controller is being setup...for production this should be set to true with at least 3 controllers.
 openstack_networking: neutron  #Defines networking to use...neutron or nova (legacy)
-openstack_neutron_dbhost: '{{ openstack_services_vip }}'  #Defines neutron db host
+openstack_neutron_dbhost: '{{ openstack_services_vip_fqdn }}'  #Defines neutron db host
 openstack_neutron_dbpass: []  #Database password for the Networking service
 openstack_neutron_external_networks: #Define external networking resources
-  - name: external-networks
+  - name: external-networks  #description for networks
     login_password: "{{ openstack_admin_pass }}"
     login_username: admin
     login_tenant_name: admin
@@ -182,43 +210,91 @@ openstack_neutron_external_networks: #Define external networking resources
         state: present #Indicate desired state of the resource
     subnets:  #define subnets to create by using networks created above
       - name: ext-subnet
-        allocation_pool_end: 172.16.24.50 #From the subnet pool the last IP that should be assigned to the virtual machines
-        allocation_pool_start: 172.16.24.25 #From the subnet pool the starting address from which the IP should be allocated
-        cidr: 172.16.24.0/24 #The CIDR representation of the subnet that should be assigned to the subnet
+        allocation_pool_end: 192.168.114.224 #From the subnet pool the last IP that should be assigned to the virtual machines
+        allocation_pool_start: 192.168.114.128 #From the subnet pool the starting address from which the IP should be allocated
+        cidr: 192.168.114.0/24 #The CIDR representation of the subnet that should be assigned to the subnet
         dns_nameservers: 8.8.8.8,8.8.4.4 #DNS nameservers for this subnet, comma-separated
         enable_dhcp: false #Whether DHCP should be enabled for this subnet
-        gateway_ip: 172.16.24.2 #The ip that would be assigned to the gateway for this subnet
+        gateway_ip: 192.168.114.254 #The ip that would be assigned to the gateway for this subnet
         ip_version: 4 #The IP version of the subnet 4 or 6
         network_name: ext-net  #Name of the network to which the subnet should be attached
         no_gateway: false #If "true", no gateway will be created for this subnet
         state: present #Indicate desired state of the resource
 openstack_neutron_pass: []  #Password of Networking service user neutron
-openstack_neutron_tenant_network_info:  #Define tenant networks, subnets and routers to create
-  - name: demo
-    tenant_name: demo
-    username: demo
-    password: '{{ openstack_demo_pass }}'
-    network_name: demo-net
-    subnet_name: demo-subnet
-    cidr: 192.168.10.0/24
-    gateway: 192.168.10.1
-    router_name: demo-router
-openstack_neutron_url: 'http://{{ openstack_services_vip }}'
+openstack_neutron_tenant_networks:
+    - name: demo-networks
+      login_password: "{{ openstack_demo_pass }}"
+      login_username: demo
+      login_tenant_name: demo
+      region_name: #Name of the region
+      networks:  #define networks to create
+        - name: demo-net-1 #Name to be assigned to the nework
+          admin_state_up: true #Whether the state should be marked as up or down
+          provider_network_type: flat #The type of the network to be created, flat, gre, vxlan, vlan, local
+          shared: false #Whether this network is shared or not
+          state: present #Indicate desired state of the resource
+        - name: demo-net-2 #Name to be assigned to the nework
+          admin_state_up: true #Whether the state should be marked as up or down
+          provider_network_type: flat #The type of the network to be created, flat, gre, vxlan, vlan, local
+          shared: false #Whether this network is shared or not
+          state: present #Indicate desired state of the resource
+      router_interfaces:
+        - router_name: demo-router #Name of the router to which the subnet's interface should be attached
+          subnet_name: demo-subnet-1 #Name of the subnet to whose interface should be attached to the router
+          state: present #Indicate desired state of the resource
+        - router_name: demo-router #Name of the router to which the subnet's interface should be attached
+          subnet_name: demo-subnet-2 #Name of the subnet to whose interface should be attached to the router
+          state: present #Indicate desired state of the resource
+      routers: #Defines routers to create
+        - name: demo-router #Name to be give to the router
+          admin_state_up: true #desired admin state of the created router
+          state: present #Indicate desired state of the resource
+      subnets:  #define subnets to create by using networks created above
+        - name: demo-subnet-1
+          allocation_pool_end: 192.168.10.50 #From the subnet pool the last IP that should be assigned to the virtual machines
+          allocation_pool_start: 192.168.10.25 #From the subnet pool the starting address from which the IP should be allocated
+          cidr: 192.168.10.0/24 #The CIDR representation of the subnet that should be assigned to the subnet
+          dns_nameservers: 8.8.8.8,8.8.4.4 #DNS nameservers for this subnet, comma-separated
+          enable_dhcp: true #Whether DHCP should be enabled for this subnet
+          gateway_ip: 192.168.10.1 #The ip that would be assigned to the gateway for this subnet
+          ip_version: 4 #The IP version of the subnet 4 or 6
+          network_name: demo-net-1  #Name of the network to which the subnet should be attached
+          no_gateway: false #If "true", no gateway will be created for this subnet
+          state: present #Indicate desired state of the resource
+        - name: demo-subnet-2
+          allocation_pool_end: 192.168.11.50 #From the subnet pool the last IP that should be assigned to the virtual machines
+          allocation_pool_start: 192.168.11.25 #From the subnet pool the starting address from which the IP should be allocated
+          cidr: 192.168.11.0/24 #The CIDR representation of the subnet that should be assigned to the subnet
+          dns_nameservers: 8.8.8.8,8.8.4.4 #DNS nameservers for this subnet, comma-separated
+          enable_dhcp: true #Whether DHCP should be enabled for this subnet
+          gateway_ip: 192.168.11.1 #The ip that would be assigned to the gateway for this subnet
+          ip_version: 4 #The IP version of the subnet 4 or 6
+          network_name: demo-net-2  #Name of the network to which the subnet should be attached
+          no_gateway: false #If "true", no gateway will be created for this subnet
+          state: present #Indicate desired state of the resource
+openstack_neutron_url: 'http://{{ openstack_services_vip_fqdn }}'
 openstack_neutron_verbose_logging: false  #Defines if neutron should enable verbose logging for troubleshooting
-openstack_nova_dbhost: '{{ openstack_services_vip }}'  #Defines nova db host
+openstack_nova_dbhost: '{{ openstack_services_vip_fqdn }}'  #Defines nova db host
 openstack_nova_dbpass: []  #Database password for Compute service
-openstack_nova_my_ip: '{{ ansible_default_ipv4.address }}'  #Defines the my_ip variable in nova
+openstack_nova_my_ip: '{{ ansible_eth0.ipv4.address }}' #defines the my_ip variable in nova
 openstack_nova_pass: []  #Password of Compute service user nova
-openstack_nova_url: 'http://{{ openstack_services_vip }}'  #http://nova.{{ pri_domain_name }}
+openstack_nova_url: 'http://{{ openstack_services_vip_fqdn }}'  #http://nova.{{ pri_domain_name }}
 openstack_nova_virt_type: kvm  #Nova virtualization Type, set to KVM if supported and QEMU if not
-openstack_rabbit_host: '{{ openstack_services_vip }}'  #Defines RabbitMQ host
+openstack_rabbit_host: '{{ openstack_services_vip_fqdn }}'  #Defines RabbitMQ host
 openstack_rabbit_pass: []  #Password of user of RabbitMQ
 openstack_rabbit_user: openstack  #User of RabbitMQ
 openstack_release: kilo  #Defines openstack release to install
-openstack_services_vip: []  #Define VIP or common IP|FQDN name for all services to communicate with.
+openstack_services_vip: 10.0.101.61  #Define IP to configure LB VIP
+openstack_services_vip_fqdn: 'openstack.{{ pri_domain_name }}'  #Define FQDN for the openstack_services_vip...This should be used for all services to connect to.
+openstack_services_vip_cidr: 24
+openstack_services_vip_int: eth0  #defines the interface to configure Pacemaker to listen on
 openstack_trove_dbpass: []  #Database password of Database service
 openstack_trove_pass: []  #Password of Database Service user trove
 pri_domain_name: example.org  #Defines primary domain name of site.
+syslog_servers:
+  - name: 'logstash.{{ pri_domain_name }}'
+    proto: tcp
+    port: 514
 ````
 
 Dependencies
@@ -230,15 +306,39 @@ Example Playbook
 ----------------
 ````
 ---
-- name: Sets Up Base Apps
+- name: bootstrap hosts
   hosts: openstack-nodes
   sudo: true
   vars:
   roles:
     - role: ansible-bootstrap
+    - role: ansible-users
+
+- name: bootstrap hosts
+  hosts: openstack-nodes
+  sudo: true
+  vars:
+  roles:
+    - role: ansible-change-hostname
+
+- name: Sets Up Base Apps
+  hosts: openstack-nodes
+  sudo: true
+  vars:
+  roles:
     - role: ansible-base
     - role: ansible-config-interfaces
     - role: ansible-ntp
+    - role: ansible-manage-ssh-keys
+    - role: ansible-ntp
+    - role: ansible-rsyslog
+    - role: ansible-postfix
+    - role: ansible-snmpd
+    - role: ansible-timezone
+    - role: ansible-pacemaker
+      tags:
+        - pacemaker
+      when: (openstack_multi_controller_setup is defined and openstack_multi_controller_setup) and inventory_hostname in groups['openstack-haproxy-nodes']
     - role: ansible-apache2
       when: inventory_hostname in groups['openstack-controller-nodes']
     - role: ansible-mariadb-mysql
@@ -249,6 +349,8 @@ Example Playbook
       when: inventory_hostname in groups['openstack-controller-nodes']
     - role: ansible-rabbitmq
       when: inventory_hostname in groups['openstack-controller-nodes']
+    - role: ansible-haproxy
+      when: inventory_hostname in groups['openstack-haproxy-nodes'] and (openstack_haproxy_install is defined and openstack_haproxy_install)
 
 # Notes
 # NTP on compute/network node(s) should point to controller node(s)
@@ -259,29 +361,6 @@ Example Playbook
   roles:
     - role: ansible-openstack
   tasks:
-
-- name: Local Tasks
-  hosts: localhost
-  connection: local
-  sudo: false
-  vars:
-  tasks:
-    - name: uploading Cirros Cloud Image to Glance
-      glance_image:
-        auth_url: "{{ openstack_glance_url }}:35357/v2.0/"
-        login_username: admin
-        login_password: "{{ openstack_admin_pass }}"
-        login_tenant_name: admin
-        name: cirros
-        container_format: bare
-        disk_format: qcow2
-        state: present
-        copy_from: http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-disk.img
-#    - name: creating admin script(s)
-#      template:
-#        src: templates/admin-openrc.sh.j2
-#        dest: ./admin-openrc.sh
-#        mode: 0700
 ````
 group_vars/all/accounts.yml
 ````
