@@ -437,6 +437,10 @@ log_dir=/var/log/keystone
 # during I, and will change in J to honor RFC5424. (boolean
 # value)
 #use_syslog=false
+{% if openstack_enable_remote_syslog is defined and openstack_enable_remote_syslog %}
+use_syslog = True
+syslog_log_facility = LOG_USER
+{% endif %}
 
 # (Optional) Enables or disables syslog rfc5424 format for
 # logging. If enabled, prefixes the MSG part of the syslog

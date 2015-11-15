@@ -90,6 +90,7 @@
     mode: 0644
 #  notify: restart keystone
 
+### Pacemaker config below has been disabled because of Apache running Keystone in Kilo+
 #- name: openstack_identity_services | configuring pacemaker for keystone identity services
 #  pacemaker: >
 #     primitive p_keystone ocf:openstack:keystone
@@ -99,7 +100,10 @@
 #     os_tenant_name="admin"
 #     os_auth_url="{{ openstack_keystone_url}}:5000/v2.0/"
 #     op monitor interval="30s" timeout="30s"
-#     commit=yes
+#  tags:
+#    - pacemaker
+#  notify:
+#    - pacemaker commit
 #  when: openstack_multi_controller_setup is defined and openstack_multi_controller_setup
 
 - name: openstack_identity_services | checking if keystone has been populated
@@ -163,7 +167,7 @@
 
 - name: openstack_identity_services | downloading WSGI components
   get_url:
-    url: http://git.openstack.org/cgit/openstack/keystone/plain/httpd/keystone.py?h=stable/kilo
+    url: "http://git.openstack.org/cgit/openstack/keystone/plain/httpd/keystone.py?h=stable/{{ openstack_release }}"
     dest: "{{ item }}"
   with_items:
     - /var/www/cgi-bin/keystone/main

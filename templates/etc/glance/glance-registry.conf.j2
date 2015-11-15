@@ -77,6 +77,10 @@ limit_param_default = 25
 
 # Facility to use. If unset defaults to LOG_USER.
 #syslog_log_facility = LOG_LOCAL1
+{% if openstack_enable_remote_syslog is defined and openstack_enable_remote_syslog %}
+use_syslog = True
+syslog_log_facility = LOG_LOCAL1
+{% endif %}
 
 # ================= SSL Options ===============================
 

@@ -8,6 +8,18 @@ Requirements
 
 You must define an IP address and DNS FQDN to be used for Load Balancing and services to connect to. These vars are defined in openstack_services_vip and openstack_services_vip_fqdn
 
+You also need to define Multi-Cast addresses for Pacemaker/Corosync HAProxy and Controller nodes. They MUST be different for each as we are creating separate Pacemaker clusters for HAProxy and Controller nodes. Define the Multi-Cast addres in group_vars as below.
+
+group_vars/openstack-controller-nodes/main.yml
+````
+corosync_mcastaddr: 239.255.42.1
+````
+
+group_vars/openstack-haproxy-nodes/main.yml
+````
+corosync_mcastaddr: 239.255.42.2
+````
+
 All additional Ansible requirements are included in the requirements.yml file.
 ````
 sudo ansible-galaxy install -r requirements.yml
@@ -37,6 +49,7 @@ openstack_dash_dbpass: []  #Database password for the dashboard
 openstack_debian_repository: 'deb http://ubuntu-cloud.archive.canonical.com/ubuntu trusty-updates/{{ openstack_release }} main'
 openstack_demo_email: 'demo@{{ pri_domain_name }}'  #Defines demo users email
 openstack_demo_pass: []  #Password of user demo
+openstack_enable_remote_syslog: false  #defines if all openstack services should write to syslog which allows remote syslog functionality...
 openstack_glance_dbhost: "{{ openstack_services_vip_fqdn }}"  #Defines glance db host
 openstack_glance_dbpass: []  #Database password for Image Service
 openstack_glance_images:  #define cloud images to automatically upload to Glance
@@ -288,6 +301,7 @@ openstack_services_vip: 10.0.101.61  #Define IP to configure LB VIP
 openstack_services_vip_fqdn: 'openstack.{{ pri_domain_name }}'  #Define FQDN for the openstack_services_vip...This should be used for all services to connect to.
 openstack_services_vip_cidr: 24
 openstack_services_vip_int: eth0  #defines the interface to configure Pacemaker to listen on
+openstack_telementry_install: true  #defines if Telemetry (Ceilometer) should be installed.
 openstack_trove_dbpass: []  #Database password of Database service
 openstack_trove_pass: []  #Password of Database Service user trove
 pri_domain_name: example.org  #Defines primary domain name of site.
@@ -312,8 +326,11 @@ Example Playbook
   vars:
   roles:
     - role: ansible-bootstrap
+      tags:
+        - bootstrap
     - role: ansible-users
-
+      tags:
+        - users
 - name: bootstrap hosts
   hosts: openstack-nodes
   sudo: true
@@ -328,6 +345,8 @@ Example Playbook
   roles:
     - role: ansible-base
     - role: ansible-config-interfaces
+      tags:
+        - config-interfaces
     - role: ansible-ntp
     - role: ansible-manage-ssh-keys
     - role: ansible-ntp
@@ -335,10 +354,14 @@ Example Playbook
     - role: ansible-postfix
     - role: ansible-snmpd
     - role: ansible-timezone
-    - role: ansible-pacemaker
+    - role: ansible-pacemaker  #HAProxy-Nodes
       tags:
         - pacemaker
       when: (openstack_multi_controller_setup is defined and openstack_multi_controller_setup) and inventory_hostname in groups['openstack-haproxy-nodes']
+    - role: ansible-pacemaker  #Controller-Nodes
+      tags:
+        - pacemaker
+      when: (openstack_multi_controller_setup is defined and openstack_multi_controller_setup) and inventory_hostname in groups['openstack-controller-nodes']
     - role: ansible-apache2
       when: inventory_hostname in groups['openstack-controller-nodes']
     - role: ansible-mariadb-mysql
@@ -360,7 +383,76 @@ Example Playbook
   vars:
   roles:
     - role: ansible-openstack
+      tags:
+        - openstack
   tasks:
+
+
+####################
+- name: Local Tasks
+  hosts: localhost
+  connection: local
+  sudo: false
+  vars:
+  tasks:
+    - name: creating admin script(s)
+      template:
+        src: templates/admin-openrc.sh.j2
+        dest: ./admin-openrc.sh
+        mode: 0700
+
+################################
+- name: manage glance images
+  hosts: localhost
+  connection: local
+  sudo: false
+  vars:
+    - openstack_glance_images:  #define cloud images to automatically upload to Glance
+        - name: cirros
+          container_format: bare
+          disk_format: qcow2
+          image_url: http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-disk.img
+          installed: true
+        - name: Fedora-22
+          container_format: bare
+          disk_format: qcow2
+          image_url: http://repo.atlantic.net/fedora/linux/releases/22/Cloud/x86_64/Images/Fedora-Cloud-Base-22-20150521.x86_64.qcow2
+          installed: true
+        - name: Ubuntu-14.04
+          container_format: bare
+          disk_format: qcow2
+          image_url: https://cloud-images.ubuntu.com/trusty/current/trusty-server-cloudimg-amd64-disk1.img
+          installed: true
+    - openstack_glance_manage_images: true
+  tasks:
+    - name: uploading glance images
+      glance_image:
+        auth_url: "{{ openstack_keystone_auth_url }}"  #defined in group_vars/all/openstack_auth_urls.yml
+        login_username: admin
+        login_password: "{{ openstack_admin_pass }}"  #defined in group_vars/all/accounts.yml
+        login_tenant_name: admin
+        name: "{{ item.name }}"
+        container_format: "{{ item.container_format }}"
+        disk_format: "{{ item.disk_format }}"
+        state: present
+        copy_from: "{{ item.image_url }}"
+      tags:
+        - manage_glance_images
+      with_items: openstack_glance_images
+      when: (openstack_glance_manage_images is defined and openstack_glance_manage_images) and (item.installed is defined and item.installed)
+
+    - name: manage_glance_images | removing glance images
+      glance_image:
+        auth_url: "{{ openstack_keystone_auth_url }}"   #defined in group_vars/all/openstack_auth_urls.yml
+        login_username: admin
+        login_password: "{{ openstack_admin_pass }}"  #defined in group_vars/all/accounts.yml
+        login_tenant_name: admin
+        name: "{{ item.name }}"
+        state: absent
+      tags:
+        - manage_glance_images
+      with_items: openstack_glance_images
+      when: (openstack_glance_manage_images is defined and openstack_glance_manage_images) and (item.installed is defined and not item.installed)
 ````
 group_vars/all/accounts.yml
 ````
@@ -399,38 +491,124 @@ update_etc_hosts: true
 group_vars/openstack-compute-nodes/main.yml
 ````
 ---
-openstack_instance_tunnel_int: eth2  #defines interface to assign to OVS br-ex
-openstack_instance_tunnel_ip: '{{ ansible_eth2.ipv4.address }}'  #define interface address for tunnel interface....ex. {{ ansible_eth2.ipv4.addres }}
+config_network_interfaces: true
+network_interfaces:  #define interfaces and settings. (Define separately for each node in host_vars) - Anything not defined can be added to addl_settings.
+  - name: eth0
+    configure: true
+    comment: management interface
+    method: dhcp
+    address:
+    netmask:
+    netmask_cidr:
+    gateway:
+#    addl_settings:
+#      - bond_master bond0
+  - name: eth1
+    configure: true
+    comment: tunnel interface
+    method: static
+    address: '{{ openstack_instance_tunnel_ip }}'
+    netmask: 255.255.255.0
+    netmask_cidr: 24
+    gateway:
+#    addl_settings:
+#      - bond_master bond0
+````
+group_vars/openstack-controller-nodes/main.yml
+````
+---
+config_rabbitmq_ha: true
+corosync_mcastaddr: 239.255.42.2
+enable_rabbitmq_clustering: true
+galera_cluster_name: openstack # Define the name of the cluster...define here or in group_vars/group
+galera_cluster_nodes: '10.0.101.139,10.0.101.137,10.0.101.180' # Define the IP addresses of the nodes which will be part of the cluster...define here or in group_vars/group
+rabbitmq_config:
+  - queue_name: '^(?!amq\.).*'
+    durable: true
+    tags: 'ha-mode=all,ha-sync-mode=automatic'
+````
+group_vars/openstack-haproxy-nodes/main.yml
+````
+---
+corosync_mcastaddr: 239.255.42.1
 ````
 group_vars/openstack-network-nodes/main.yml
 ````
 ---
-#openstack_instance_tunnel_int: eth2  #defines interface to assign to OVS br-ex
-openstack_instance_tunnel_ip: '{{ ansible_eth2.ipv4.address }}'  #define interface address for tunnel interface....ex. {{ ansible_eth2.ipv4.addres }}
-openstack_ext_br_int: eth3
+config_network_interfaces: true
+network_interfaces:  #define interfaces and settings. (Define separately for each node in host_vars) - Anything not defined can be added to addl_settings.
+  - name: eth0
+    configure: true
+    comment: management interface
+    method: dhcp
+    address:
+    netmask:
+    netmask_cidr:
+    gateway:
+#    addl_settings:
+#      - bond_master bond0
+  - name: eth1
+    configure: true
+    comment: tunnel interface
+    method: static
+    address: '{{ openstack_instance_tunnel_ip }}'
+    netmask: 255.255.255.0
+    netmask_cidr: 24
+    gateway:
+#    addl_settings:
+#      - bond_master bond0
+  - name: eth2
+    configure: true
+    comment: tunnel interface
+    method: manual
+    address: 0.0.0.0
+    netmask: 255.255.255.0
+    netmask_cidr: 24
+    gateway:
+    addl_settings:
+      - up ip link set $IFACE promisc on
+      - down ip link set $IFACE promisc off
+      - down ifconfig $IFACE down
+openstack_ext_br_int: eth2
 ````
+group_vars/openstack-nodes/main.yml
+````
+---
+config_openstack_neutron_networks: true
+corosync_bindnet_addr: "{{ ansible_eth0.ipv4.network }}"  #defines the interface to use for syncing cluster..this is a /24 address...ie...
+corosync_expected_votes: 1  #defines the number of nodes to be functional in order to avoid split-brain scenarios...ex. 2-nodes = 1, 3-nodes = 2
+mysql_allow_remote_connections: true  #defines if mysql should listen on loopback (default) or allow remove connections
+openstack_enable_remote_syslog: true  #defines if all openstack services should write to syslog which allows remote syslog functionality...
+openstack_glance_verbose_logging: true  #defines if glance should enable verbose logging for troubleshooting
+openstack_haproxy_install: true  #defines if haproxy should be installed on controller nodes....can separate out but installing on controller nodes is common practice and use corosync/pacemaker to handle the VIP.
+openstack_heat_verbose_logging: true  #defines if glance should enable verbose logging for troubleshooting
+openstack_horizon_remove_ubuntu_theme: true  #defines if the Ubuntu Horizon theme should be removed and the original Horizon theme restored
+openstack_keystone_verbose_logging: true  #defines if keystone should enable verbose logging for troubleshooting
+openstack_multi_controller_setup: true
+openstack_neutron_verbose_logging: true  #defines if neutron should enable verbose logging for troubleshooting
+openstack_nova_virt_type: qemu  #Nova virtualization Type, set to KVM if supported and QEMU if not
+rabbitmq_master: os-controller-01
+````
+
 Inventory Hosts
 ````
-# Generated by Vagrant
-
-compute-1 ansible_ssh_host=127.0.0.1 ansible_ssh_port=2222 ansible_ssh_private_key_file=/Users/larrysmith/Git_Projects/gerrit.everythingshouldbevirtual.local/ansible-openstack/vagrant/.vagrant/machines/compute-1/virtualbox/private_key
-compute-2 ansible_ssh_host=127.0.0.1 ansible_ssh_port=2200 ansible_ssh_private_key_file=/Users/larrysmith/Git_Projects/gerrit.everythingshouldbevirtual.local/ansible-openstack/vagrant/.vagrant/machines/compute-2/virtualbox/private_key
-controller-1 ansible_ssh_host=127.0.0.1 ansible_ssh_port=2201 ansible_ssh_private_key_file=/Users/larrysmith/Git_Projects/gerrit.everythingshouldbevirtual.local/ansible-openstack/vagrant/.vagrant/machines/controller-1/virtualbox/private_key
-network-1 ansible_ssh_host=127.0.0.1 ansible_ssh_port=2202 ansible_ssh_private_key_file=/Users/larrysmith/Git_Projects/gerrit.everythingshouldbevirtual.local/ansible-openstack/vagrant/.vagrant/machines/network-1/virtualbox/private_key
-
 [openstack-nodes]
-compute-[1:2]
-controller-1
-network-1
-
-[openstack-compute-nodes]
-compute-[1:2]
+os-haproxy-[01:02]
+os-controller-[01:03]
+os-network-[01:02]
+os-compute-[01:02]
 
 [openstack-controller-nodes]
-controller-1
+os-controller-[01:03]
+
+[openstack-haproxy-nodes]
+os-haproxy-[01:02]
 
 [openstack-network-nodes]
-network-1
+os-network-[01:02]
+
+[openstack-compute-nodes]
+os-compute-[01:02]
 ````
 
 License

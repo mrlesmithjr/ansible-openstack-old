@@ -70,6 +70,11 @@
     - heat
   when: (openstack_heat_install is defined and openstack_heat_install) and inventory_hostname in groups['openstack-controller-nodes']
 
+- include: openstack_telemetry.yml
+  tags:
+    - telemetry
+  when: (openstack_telementry_install is defined and openstack_telementry_install) and inventory_hostname in groups['openstack-controller-nodes']
+
 - include: openstack_group_based_policy.yml
   tags:
     - group_based_policy

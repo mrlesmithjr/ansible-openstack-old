@@ -34,6 +34,10 @@ verbose = True
 
 # use_syslog = False
 # syslog_log_facility = LOG_USER
+{% if openstack_enable_remote_syslog is defined and openstack_enable_remote_syslog %}
+use_syslog = True
+syslog_log_facility = LOG_USER
+{% endif %}
 
 # use_stderr = True
 # log_file =

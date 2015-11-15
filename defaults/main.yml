@@ -18,6 +18,7 @@ openstack_dash_dbpass: []  #Database password for the dashboard
 openstack_debian_repository: 'deb http://ubuntu-cloud.archive.canonical.com/ubuntu trusty-updates/{{ openstack_release }} main'
 openstack_demo_email: 'demo@{{ pri_domain_name }}'  #Defines demo users email
 openstack_demo_pass: []  #Password of user demo
+openstack_enable_remote_syslog: false  #defines if all openstack services should write to syslog which allows remote syslog functionality...
 openstack_glance_dbhost: "{{ openstack_services_vip_fqdn }}"  #Defines glance db host
 openstack_glance_dbpass: []  #Database password for Image Service
 openstack_glance_images:  #define cloud images to automatically upload to Glance
@@ -269,6 +270,7 @@ openstack_services_vip: 10.0.101.61  #Define IP to configure LB VIP
 openstack_services_vip_fqdn: 'openstack.{{ pri_domain_name }}'  #Define FQDN for the openstack_services_vip...This should be used for all services to connect to.
 openstack_services_vip_cidr: 24
 openstack_services_vip_int: eth0  #defines the interface to configure Pacemaker to listen on
+openstack_telementry_install: true  #defines if Telemetry (Ceilometer) should be installed.
 openstack_trove_dbpass: []  #Database password of Database service
 openstack_trove_pass: []  #Password of Database Service user trove
 pri_domain_name: example.org  #Defines primary domain name of site.
