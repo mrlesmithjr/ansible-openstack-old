@@ -589,6 +589,40 @@ openstack_neutron_verbose_logging: true  #defines if neutron should enable verbo
 openstack_nova_virt_type: qemu  #Nova virtualization Type, set to KVM if supported and QEMU if not
 rabbitmq_master: os-controller-01
 ````
+host_vars/os-compute-01
+````
+---
+ansible_ssh_host: 10.0.101.143
+openstack_instance_tunnel_int: eth1  #defines interface to assign to OVS br-ex
+openstack_instance_tunnel_ip: 10.0.111.31 #define interface address for tunnel interface....ex. {{ ansible_eth2.ipv4.addres }}
+````
+host_vars/os-compute-02
+````
+---
+ansible_ssh_host: 10.0.101.191
+openstack_instance_tunnel_int: eth1  #defines interface to assign to OVS br-ex
+openstack_instance_tunnel_ip: 10.0.111.32 #define interface address for tunnel interface....ex. {{ ansible_eth2.ipv4.addres }}
+````
+host_vars/os-controller-01
+````
+---
+mysql_master: true
+pacemaker_primary_server: true
+````
+host_vars/os-network-01
+````
+---
+ansible_ssh_host: 10.0.101.141
+openstack_instance_tunnel_int: eth1  #defines interface to assign to OVS br-ex
+openstack_instance_tunnel_ip: 10.0.111.21 #define interface address for tunnel interface....ex. {{ ansible_eth2.ipv4.addres }}
+````
+host_vars/os-network-02
+````
+---
+ansible_ssh_host: 10.0.101.142
+openstack_instance_tunnel_int: eth1  #defines interface to assign to OVS br-ex
+openstack_instance_tunnel_ip: 10.0.111.22 #define interface address for tunnel interface....ex. {{ ansible_eth2.ipv4.addres }}
+````
 
 Inventory Hosts
 ````
