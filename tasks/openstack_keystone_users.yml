@@ -1,5 +1,5 @@
 ---
-- name: openstack_identity_services | creating users
+- name: openstack_keystone_users | creating users
   keystone_user:
     user: "{{ item.name }}"
     password: "{{ item.password }}"
@@ -8,9 +8,9 @@
     token: "{{ openstack_keystone_temp_admin_token }}"
     state: present
   with_items: openstack_keystone_users
-  when: (openstack_multi_controller_setup is defined and not openstack_multi_controller_setup) or openstack_multi_controller_setup is not defined
+  when: openstack_keystone_api_master is defined and (inventory_hostname == openstack_keystone_api_master)
 
-- name: openstack_identity_services | creating users
+- name: openstack_keystone_users | creating users  #duplicated to ensure that if openstack_keystone_api_master does not match an inventory_hostname
   keystone_user:
     user: "{{ item.name }}"
     password: "{{ item.password }}"
@@ -18,6 +18,5 @@
     tenant: "{{ item.tenant }}"
     token: "{{ openstack_keystone_temp_admin_token }}"
     state: present
-  run_once: yes
   with_items: openstack_keystone_users
-  when: openstack_multi_controller_setup is defined and openstack_multi_controller_setup
+  when: openstack_keystone_api_master is defined and (inventory_hostname != openstack_keystone_api_master)

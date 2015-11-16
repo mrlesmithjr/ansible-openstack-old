@@ -1,14 +1,23 @@
 # mongodb.conf
 
 # Where to store the data.
+{% if openstack_mongodb_dbpath is defined %}
+dbpath={{ openstack_mongodb_dbpath }}
+{% endif %}
+{% if openstack_mongodb_dbpath is not defined %}
 dbpath=/var/lib/mongodb
+{% endif %}
 
 #where to log
 logpath=/var/log/mongodb/mongodb.log
 
 logappend=true
 
-bind_ip = 127.0.0.1
+#bind_ip = 127.0.0.1
+bind_ip = 0.0.0.0
+
+smallfiles = true
+
 #port = 27017
 
 # Enable journaling, http://www.mongodb.org/display/DOCS/Journaling
@@ -80,6 +89,24 @@ journal=true
 # or
 #master = true
 #source = slave.example.com
+
+{% if openstack_multi_controller_setup is defined and openstack_multi_controller_setup %}
+{%   if hostvars[inventory_hostname]['openstack_mongodb_master'] is defined and hostvars[inventory_hostname]['openstack_mongodb_master'] %}
+master = true
+{%   elif (hostvars[inventory_hostname]['openstack_mongodb_master'] is defined and not hostvars[inventory_hostname]['openstack_mongodb_master']) or hostvars[inventory_hostname]['openstack_mongodb_master'] is not defined %}
+slave = true
+{%     for host in groups['openstack-controller-nodes'] %}
+{%       if hostvars[host]['openstack_mongodb_master'] is defined and hostvars[host]['openstack_mongodb_master'] %}
+{%         if pri_domain_name is defined %}
+source = {{ host }}.{{ pri_domain_name }}:27017
+{%         elif pri_domain_name is not defined %}
+source = {{ host }}:27017
+{%         endif %}
+autoresync = true
+{%       endif %}
+{%     endfor %}
+{%   endif %}
+{% endif %}
 
 # Address of a server to pair with.
 #pairwith = <server:port>

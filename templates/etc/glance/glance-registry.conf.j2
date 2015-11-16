@@ -99,7 +99,11 @@ syslog_log_facility = LOG_LOCAL1
 # 'messaging' to send notifications to a message queue.
 
 {% if inventory_hostname in groups['openstack-controller-nodes'] %}
+{%   if ((openstack_telementry_install is defined and not openstack_telementry_install) or openstack_telementry_install is not defined) %}
 notification_driver = noop
+{%   elif openstack_telementry_install is defined and openstack_telementry_install %}
+notification_driver = messagingv2
+{%   endif %}
 {% endif %}
 
 # Default publisher_id for outgoing notifications.
@@ -107,18 +111,34 @@ notification_driver = noop
 
 # Messaging driver used for 'messaging' notifications driver
 # rpc_backend = 'rabbit'
+{% if inventory_hostname in groups['openstack-controller-nodes'] %}
+{%   if ((openstack_telementry_install is defined and not openstack_telementry_install) or openstack_telementry_install is not defined) %}
 
 # Configuration options if sending notifications via rabbitmq (these are
 # the defaults)
 rabbit_host = localhost
-rabbit_port = 5672
-rabbit_use_ssl = false
 rabbit_userid = guest
 rabbit_password = guest
+
+{%   elif openstack_telementry_install is defined and openstack_telementry_install %}
+rpc_backend = rabbit
+
+rabbit_host = {{ openstack_rabbit_host }}
+rabbit_userid = openstack
+rabbit_password = {{ openstack_rabbit_pass }}
+{%   endif %}
+{% endif %}
+{% if (openstack_multi_controller_setup is defined and not openstack_multi_controller_setup) or openstack_multi_controller_setup is not defined %}
+rabbit_durable_queues = False
+{% elif openstack_multi_controller_setup is defined and openstack_multi_controller_setup %}
+rabbit_durable_queues=true
+rabbit_ha_queues=true
+{% endif %}
+rabbit_port = 5672
+rabbit_use_ssl = false
 rabbit_virtual_host = /
 rabbit_notification_exchange = glance
 rabbit_notification_topic = notifications
-rabbit_durable_queues = False
 
 # Configuration options if sending notifications via Qpid (these are
 # the defaults)

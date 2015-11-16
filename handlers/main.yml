@@ -2,10 +2,45 @@
 # handlers file for ansible-openstack
 - name: pacemaker commit
   pacemaker: commit
-  
+
 - name: restart apache2
   service:
     name: apache2
+    state: restarted
+
+- name: restart ceilometer-agent-central
+  service:
+    name: ceilometer-agent-central
+    state: restarted
+
+- name: restart ceilometer-agent-compute
+  service:
+    name: ceilometer-agent-compute
+    state: restarted
+
+- name: restart ceilometer-agent-notification
+  service:
+    name: ceilometer-agent-notification
+    state: restarted
+
+- name: restart ceilometer-api
+  service:
+    name: ceilometer-api
+    state: restarted
+
+- name: restart ceilometer-collector
+  service:
+    name: ceilometer-collector
+    state: restarted
+
+- name: restart ceilometer-alarm-evaluator
+  service:
+    name: ceilometer-alarm-evaluator
+    state: restarted
+
+- name: restart ceilometer-alarm-notifier
+  service:
+    name: ceilometer-alarm-notifier
     state: restarted
 
 - name: restart glance-api
@@ -41,6 +76,11 @@
 - name: restart keystone
   service:
     name: keystone
+    state: restarted
+
+- name: restart mongodb
+  service:
+    name: mongodb
     state: restarted
 
 - name: restart neutron-dhcp-agent

@@ -7,15 +7,14 @@
     token: "{{ openstack_keystone_temp_admin_token }}"
     state: present
   with_items: openstack_keystone_services
-  when: (openstack_multi_controller_setup is defined and not openstack_multi_controller_setup) or openstack_multi_controller_setup is not defined
+  when: openstack_keystone_api_master is defined and (inventory_hostname == openstack_keystone_api_master)
 
-- name: openstack_keystone_services | creating keystone services
+- name: openstack_keystone_services | creating keystone services  #duplicated to ensure that if openstack_keystone_api_master does not match an inventory_hostname
   keystone_service:
     name: "{{ item.name }}"
     service_type: "{{ item.service_type }}"
     description: "{{ item.description|default('Not provided') }}"
     token: "{{ openstack_keystone_temp_admin_token }}"
     state: present
-  run_once: yes
   with_items: openstack_keystone_services
-  when: openstack_multi_controller_setup is defined and openstack_multi_controller_setup
+  when: openstack_keystone_api_master is defined and (inventory_hostname != openstack_keystone_api_master)

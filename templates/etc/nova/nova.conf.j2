@@ -18,8 +18,7 @@ my_ip={{ openstack_nova_my_ip }}
 vnc_enabled=True
 {% if openstack_services_vip is defined %}
 vncserver_listen=0.0.0.0
-{% endif %}
-{% if openstack_services_vip is not defined %}
+{% elif openstack_services_vip is not defined %}
 vncserver_listen={{ openstack_nova_my_ip }}
 {% endif %}
 vncserver_proxyclient_address={{ openstack_nova_my_ip }}
@@ -32,6 +31,12 @@ security_group_api = neutron
 linuxnet_interface_driver = nova.network.linux_net.LinuxOVSInterfaceDriver
 firewall_driver = nova.virt.firewall.NoopFirewallDriver
 {%   endif %}
+{%   if openstack_telementry_install is defined and openstack_telementry_install %}
+instance_usage_audit = True
+instance_usage_audit_period = hour
+notify_on_state_change = vm_and_task_state
+notification_driver = messagingv2
+{%   endif %}
 {% endif %}
 
 {% if inventory_hostname in groups['openstack-controller-nodes'] %}
@@ -41,8 +46,7 @@ my_ip={{ openstack_nova_my_ip }}
 {% if openstack_services_vip is defined %}
 vncserver_listen=0.0.0.0
 vncserver_proxyclient_address={{ openstack_services_vip }}
-{% endif %}
-{% if openstack_services_vip is not defined %}
+{% elif openstack_services_vip is not defined %}
 vncserver_listen={{ openstack_nova_my_ip }}
 vncserver_proxyclient_address={{ openstack_nova_my_ip }}
 {% endif %}

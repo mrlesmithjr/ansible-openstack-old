@@ -8,7 +8,13 @@ Requirements
 
 You must define an IP address and DNS FQDN to be used for Load Balancing and services to connect to. These vars are defined in openstack_services_vip and openstack_services_vip_fqdn
 
-You also need to define Multi-Cast addresses for Pacemaker/Corosync HAProxy and Controller nodes. They MUST be different for each as we are creating separate Pacemaker clusters for HAProxy and Controller nodes. Define the Multi-Cast addres in group_vars as below.
+You also need to define Multi-Cast addresses for Pacemaker/Corosync HAProxy and Controller nodes. They MUST be different for each as we are creating separate Pacemaker clusters for HAProxy and Controller nodes. Define the Multi-Cast address in group_vars as below.
+
+Also make sure to define one of your controller nodes as openstack_keystone_api_master...using keystone_user module does not work with run_once and causes additional controller nodes to fail when creating
+keystone users, endpoints, tenants and services...
+````
+openstack_keystone_api_master: os-controller-01
+````
 
 group_vars/openstack-controller-nodes/main.yml
 ````
@@ -41,8 +47,10 @@ haproxy_admin_port: 9090
 mysql_root_password: []  #Root password for the database
 openstack_admin_email: 'admin@{{ pri_domain_name }}'  #Defines admin users email
 openstack_admin_pass: []  #Password of user admin
+openstack_keystone_api_master: os-controller-01  #defines one of the controller nodes as a primary to create keystone users, endpoints, tenants and services...this gets around the issue of errors  since run_once does not work on keystone_user.
 openstack_ceilometer_dbpass: []  #Database password for the Telemetry service
 openstack_ceilometer_pass: []  #Password of Telemetry service user ceilometer
+openstack_ceilometer_url: 'http://{{ openstack_services_vip_fqdn }}'
 openstack_cinder_dbpass: []  #Database password for the Block Storage service
 openstack_cinder_pass: []  #Password of Block Storage service user cinder
 openstack_dash_dbpass: []  #Database password for the dashboard
@@ -90,6 +98,10 @@ openstack_keystone_dbhost: '{{ openstack_services_vip_fqdn }}'  #Defines keyston
 openstack_keystone_dbpass: []  #Database password of Identity service
 openstack_keystone_default_region: regionOne
 openstack_keystone_endpoints:
+  - service_name: ceilometer
+    public_url: "{{ openstack_ceilometer_url }}:8777"
+    internal_url: "{{ openstack_ceilometer_url }}:8777"
+    admin_url: "{{ openstack_ceilometer_url }}:8777"
   - service_name: glance
     public_url: "{{ openstack_glance_url }}:9292"
     internal_url: "{{ openstack_glance_url }}:9292"
@@ -119,6 +131,9 @@ openstack_keystone_roles:  #Tenants are now Projects
     user: admin
     tenant: admin
   - name: admin
+    user: ceilometer
+    tenant: service
+  - name: admin
     user: glance
     tenant: service
   - name: admin
@@ -140,6 +155,9 @@ openstack_keystone_roles:  #Tenants are now Projects
     user: demo
     tenant: demo
 openstack_keystone_services:
+  - name: ceilometer
+    description: "Telemetry"
+    service_type: metering
   - name: glance
     description: "OpenStack Image Service"
     service_type: image
@@ -172,6 +190,9 @@ openstack_keystone_users:  #Tenants are now Projects
     password: "{{ openstack_admin_pass }}"
     email: "{{ openstack_admin_email }}"
     tenant: admin
+  - name: ceilometer
+    password: "{{ openstack_ceilometer_pass }}"
+    tenant: service
   - name: demo
     password: "{{ openstack_demo_pass }}"
     email: "{{ openstack_demo_email }}"
@@ -194,6 +215,10 @@ openstack_keystone_users:  #Tenants are now Projects
     tenant: service
 openstack_keystone_verbose_logging: false  #Defines if keystone should enable verbose logging for troubleshooting
 openstack_metadata_secret: []  #Defines shared metadata secret for metadata services
+openstack_mongodb_admin_user: admin  #define mongodb admin user for mongodb cluster
+openstack_mongodb_dbpath: /var/lib/mongodb  #defines mongodb path for database
+openstack_mongodb_keyfile: /etc/mongodb-keyfile  #defines where auth keyfile is located
+openstack_mongodb_master: false  #defines if host is master or slave...define false here and set to true on one host_vars/hostname
 openstack_multi_controller_setup: false  #defines if more than 1 controller is being setup...for production this should be set to true with at least 3 controllers.
 openstack_networking: neutron  #Defines networking to use...neutron or nova (legacy)
 openstack_neutron_dbhost: '{{ openstack_services_vip_fqdn }}'  #Defines neutron db host
