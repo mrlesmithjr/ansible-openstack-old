@@ -1,4 +1,5 @@
 [DEFAULT]
+#
 dhcpbridge_flagfile=/etc/nova/nova.conf
 dhcpbridge=/usr/bin/nova-dhcpbridge
 logdir=/var/log/nova
@@ -16,13 +17,13 @@ rpc_backend=rabbit
 auth_strategy=keystone
 my_ip={{ openstack_nova_my_ip }}
 vnc_enabled=True
-{% if openstack_services_vip is defined %}
+{%   if openstack_services_vip is defined %}
 vncserver_listen=0.0.0.0
-{% elif openstack_services_vip is not defined %}
+{%   elif openstack_services_vip is not defined %}
 vncserver_listen={{ openstack_nova_my_ip }}
-{% endif %}
+{%   endif %}
 vncserver_proxyclient_address={{ openstack_nova_my_ip }}
-novncproxy_base_url=http://{{ openstack_services_vip }}:6080/vnc_auto.html
+novncproxy_base_url=http://{{ openstack_services_vip_fqdn }}:6080/vnc_auto.html
 vif_plugging_timeout=10
 vif_plugging_is_fatal=False
 {%   if openstack_networking is defined and openstack_networking == "neutron" %}
@@ -43,13 +44,17 @@ notification_driver = messagingv2
 rpc_backend=rabbit
 auth_strategy=keystone
 my_ip={{ openstack_nova_my_ip }}
-{% if openstack_services_vip is defined %}
+{%   if openstack_services_vip is defined %}
 vncserver_listen=0.0.0.0
-vncserver_proxyclient_address={{ openstack_services_vip }}
-{% elif openstack_services_vip is not defined %}
+vncserver_proxyclient_address={{ openstack_services_vip_fqdn }}
+{%   elif openstack_services_vip is not defined %}
 vncserver_listen={{ openstack_nova_my_ip }}
 vncserver_proxyclient_address={{ openstack_nova_my_ip }}
-{% endif %}
+{%   endif %}
+{%   if openstack_multi_controller_setup is defined and openstack_multi_controller_setup %}
+memcached_servers = {% for host in groups['openstack-controller-nodes'] %}{{ host }}:11211{% if not loop.last %},{% endif %}{% endfor %}
+
+{%   endif %}
 {%   if openstack_networking is defined and openstack_networking == "neutron" %}
 network_api_class = nova.network.neutronv2.api.API
 security_group_api = neutron
@@ -66,6 +71,13 @@ connection=mysql://nova:{{ openstack_nova_dbpass }}@{{ openstack_nova_dbhost }}/
 [glance]
 {% if inventory_hostname in groups['openstack-compute-nodes'] %}
 host={{ openstack_glance_dbhost }}
+{%   if openstack_multi_controller_setup is defined and openstack_multi_controller_setup %}
+{%     if openstack_services_vip_fqdn is defined %}
+api_servers = {{ openstack_services_vip_fqdn }}
+{%     elif openstack_services_vip_fqdn is not defined and openstack_services_vip is defined %}
+api_servers = {{ openstack_services_vip }}
+{%     endif %}
+{%   endif %}
 {% endif %}
 
 {% if inventory_hostname in groups['openstack-controller-nodes'] %}

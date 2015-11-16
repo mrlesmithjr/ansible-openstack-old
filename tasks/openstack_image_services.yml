@@ -93,9 +93,34 @@
     path: /var/lib/glance/glance.sqlite
     state: absent
 
-#- name: openstack_image_services | downloading Cirros Cloud Image
-#  get_url:
-#    url: http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-disk.img
-#    dest: ./cirros-0.3.4-x86_64-disk.img
-#  delegate_to: localhost
-#  sudo: false
+- name: openstack_image_services | downloading glance-api pacemaker config
+  get_url:
+    url: https://git.openstack.org/cgit/openstack/openstack-resource-agents/plain/ocf/glance-api
+    dest: /usr/lib/ocf/resource.d/openstack/glance-api
+  tags:
+    - pacemaker
+  when: openstack_multi_controller_setup is defined and openstack_multi_controller_setup
+
+- name: openstack_image_services | setting permissions on glance-api pacemaker file
+  file:
+    path: /usr/lib/ocf/resource.d/openstack/glance-api
+    owner: root
+    group: root
+    mode: 0755
+  tags:
+    - pacemaker
+  when: openstack_multi_controller_setup is defined and openstack_multi_controller_setup
+
+- name: openstack_image_services | configuring glance-api monitoring on pacemaker
+  pacemaker: >
+    primitive p_glance-api ocf:openstack:glance-api
+    params config="/etc/glance/glance-api.conf"
+    os_password="{{ openstack_admin_pass }}"
+    os_username="admin" os_tenant_name="admin"
+    os_auth_url="{{ openstack_keystone_url }}:5000/v2.0/"
+    op monitor interval="30s" timeout="30s"
+  tags:
+    - pacemaker
+  notify:
+    - pacemaker commit
+  when: openstack_multi_controller_setup is defined and openstack_multi_controller_setup

@@ -44,6 +44,8 @@
   when: inventory_hostname in groups['openstack-controller-nodes']
 
 - include: openstack_compute_services.yml
+  tags:
+    - nova
   when: inventory_hostname in groups['openstack-controller-nodes']
 
 - include: openstack_compute.yml
@@ -89,7 +91,6 @@
   tags:
     - telemetry
   when: (openstack_telementry_install is defined and openstack_telementry_install) and inventory_hostname in groups['openstack-compute-nodes']
-
 
 - include: openstack_group_based_policy.yml
   tags:

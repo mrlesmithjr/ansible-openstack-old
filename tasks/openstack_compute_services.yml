@@ -94,3 +94,13 @@
   file:
     path: /var/lib/nova/nova.sqlite
     state: absent
+
+- name: openstack_compute_services | configuring memcached
+  template:
+    src: etc/memcached.conf.j2
+    dest: /etc/memcached.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart memcached

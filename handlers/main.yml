@@ -78,6 +78,11 @@
     name: keystone
     state: restarted
 
+- name: restart memcached
+  service:
+    name: memcached
+    state: restarted
+
 - name: restart mongodb
   service:
     name: mongodb
