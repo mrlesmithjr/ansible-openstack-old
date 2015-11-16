@@ -89,14 +89,17 @@
     - restart neutron-dhcp-agent
     - restart neutron-metadata-agent
 
-- name: openstack_neutron_network_nodes | Creating Openvswitch Bridge (br-ex)
+- name: openstack_neutron_network_nodes | Creating OVS Bridge(s)
   openvswitch_bridge:
-    bridge: br-ex
+    bridge: "{{ item.bridge_name }}"
     state: present
+  with_items: openstack_neutron_bridges
 
 - name: openstack_neutron_network_nodes | adding port to Openvswitch Bridge (br-ex)
   openvswitch_port:
-    bridge: br-ex
-#    port: "{{ openstack_instance_tunnel_int }}"
-    port: "{{ openstack_ext_br_int }}"
+    bridge: "{{ item.0.bridge_name }}"
+    port: "{{ item.1 }}"
     state: present
+  with_subelements:
+    - openstack_neutron_bridges
+    - ports

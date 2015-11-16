@@ -50,7 +50,9 @@ openstack_admin_pass: []  #Password of user admin
 openstack_keystone_api_master: os-controller-01  #defines one of the controller nodes as a primary to create keystone users, endpoints, tenants and services...this gets around the issue of errors  since run_once does not work on keystone_user.
 openstack_ceilometer_dbpass: []  #Database password for the Telemetry service
 openstack_ceilometer_pass: []  #Password of Telemetry service user ceilometer
+openstack_ceilometer_token_secret: []  #defines the token secret to configure Telemtry services.
 openstack_ceilometer_url: 'http://{{ openstack_services_vip_fqdn }}'
+openstack_ceilometer_verbose_logging: false  #Defines if ceilometer should enable verbose logging for troubleshooting
 openstack_cinder_dbpass: []  #Database password for the Block Storage service
 openstack_cinder_pass: []  #Password of Block Storage service user cinder
 openstack_dash_dbpass: []  #Database password for the dashboard
@@ -92,7 +94,6 @@ openstack_heat_url: 'http://{{ openstack_services_vip_fqdn }}'  #http://heat.{{ 
 openstack_heat_verbose_logging: false  #Defines if glance should enable verbose logging for troubleshooting
 openstack_horizon_install: true  #Defines if Horizon Dashboard should be installed
 openstack_horizon_remove_ubuntu_theme: false  #Defines if the Ubuntu Horizon theme should be removed and the original Horizon theme restored
-openstack_instance_tunnel_int: []  #Defines interface to assign to OVS br-ex..ex..eth2
 openstack_instance_tunnel_ip: []  #Define interface address for tunnel interface....ex. {{ ansible_eth2.ipv4.address }}
 openstack_keystone_dbhost: '{{ openstack_services_vip_fqdn }}'  #Defines keystone db host
 openstack_keystone_dbpass: []  #Database password of Identity service
@@ -221,6 +222,13 @@ openstack_mongodb_keyfile: /etc/mongodb-keyfile  #defines where auth keyfile is 
 openstack_mongodb_master: false  #defines if host is master or slave...define false here and set to true on one host_vars/hostname
 openstack_multi_controller_setup: false  #defines if more than 1 controller is being setup...for production this should be set to true with at least 3 controllers.
 openstack_networking: neutron  #Defines networking to use...neutron or nova (legacy)
+openstack_neutron_bridges:  #defines OVS bridges and physical interface(s)
+  - bridge_name: br-ex  #defines the OVS Bridge name to create.
+    physical_networks:
+      - external  #defines the physical_network name which maps to the OVS bridge_name
+#      - external-vlans
+    ports:  #defines the physical interface port(s)
+      - eth2
 openstack_neutron_dbhost: '{{ openstack_services_vip_fqdn }}'  #Defines neutron db host
 openstack_neutron_dbpass: []  #Database password for the Networking service
 openstack_neutron_external_networks: #Define external networking resources
@@ -233,7 +241,7 @@ openstack_neutron_external_networks: #Define external networking resources
       - name: ext-net #Name to be assigned to the nework
         admin_state_up: true #Whether the state should be marked as up or down
         provider_network_type: flat #The type of the network to be created, flat, gre, vxlan, vlan, local
-        provider_physical_network: external #The physical network which would realize the virtual network for flat and vlan networks.
+        provider_physical_network: external #The physical network which would realize the virtual network for flat and vlan networks. Defined in openstack_neutron_bridges.
         provider_segmentation_id: #The id that has to be assigned to the network, in case of vlan networks that would be vlan id, for gre the tunnel id and for vxlan the VNI
         router_external: true #If 'yes', specifies that the virtual network is a external network (public)
         shared: false #Whether this network is shared or not
@@ -253,12 +261,21 @@ openstack_neutron_external_networks: #Define external networking resources
         cidr: 192.168.114.0/24 #The CIDR representation of the subnet that should be assigned to the subnet
         dns_nameservers: 8.8.8.8,8.8.4.4 #DNS nameservers for this subnet, comma-separated
         enable_dhcp: false #Whether DHCP should be enabled for this subnet
-        gateway_ip: 192.168.114.254 #The ip that would be assigned to the gateway for this subnet
+        gateway_ip: 192.168.114.1 #The ip that would be assigned to the gateway for this subnet
         ip_version: 4 #The IP version of the subnet 4 or 6
         network_name: ext-net  #Name of the network to which the subnet should be attached
         no_gateway: false #If "true", no gateway will be created for this subnet
         state: present #Indicate desired state of the resource
+openstack_neutron_flat_networks:  #defines the physical_network(s) defined in openstack_neutron_bridges to use as external uplinks for flat networking.
+#  - external
+  - "*"  #defines allow all
+openstack_neutron_mechanism_drivers:  #defines the networking mechanism driver entrypoints to load....openvswitch, arista, cisco, brocade, linuxbridge, and etc....
+  - openvswitch
+  - l2population
+#  - cisco
 openstack_neutron_pass: []  #Password of Networking service user neutron
+openstack_neutron_tenant_network_types:  #defines tenant network type(s) for tenant networks..local,vlan,gre,vxlan
+  - gre
 openstack_neutron_tenant_networks:
     - name: demo-networks
       login_password: "{{ openstack_demo_pass }}"
@@ -310,8 +327,19 @@ openstack_neutron_tenant_networks:
           network_name: demo-net-2  #Name of the network to which the subnet should be attached
           no_gateway: false #If "true", no gateway will be created for this subnet
           state: present #Indicate desired state of the resource
+openstack_neutron_tunnel_types:  #defines the tunnel types to use for agent communications....gre, vxlan, etc.
+  - gre
+openstack_neutron_type_drivers:  #local, flat, vlan, gre, vxlan
+  - flat
+  - gre
+  - vlan
+  - vxlan
 openstack_neutron_url: 'http://{{ openstack_services_vip_fqdn }}'
 openstack_neutron_verbose_logging: false  #Defines if neutron should enable verbose logging for troubleshooting
+openstack_neutron_vlans:  #define vlans to be configured as external networks....ex. 101, or for a group 101:110
+  - physical_network: external
+    vlans:
+      - range: 114:114
 openstack_nova_dbhost: '{{ openstack_services_vip_fqdn }}'  #Defines nova db host
 openstack_nova_dbpass: []  #Database password for Compute service
 openstack_nova_my_ip: '{{ ansible_eth0.ipv4.address }}' #defines the my_ip variable in nova
@@ -594,7 +622,6 @@ network_interfaces:  #define interfaces and settings. (Define separately for eac
       - up ip link set $IFACE promisc on
       - down ip link set $IFACE promisc off
       - down ifconfig $IFACE down
-openstack_ext_br_int: eth2
 ````
 group_vars/openstack-nodes/main.yml
 ````
@@ -618,14 +645,12 @@ host_vars/os-compute-01
 ````
 ---
 ansible_ssh_host: 10.0.101.143
-openstack_instance_tunnel_int: eth1  #defines interface to assign to OVS br-ex
 openstack_instance_tunnel_ip: 10.0.111.31 #define interface address for tunnel interface....ex. {{ ansible_eth2.ipv4.addres }}
 ````
 host_vars/os-compute-02
 ````
 ---
 ansible_ssh_host: 10.0.101.191
-openstack_instance_tunnel_int: eth1  #defines interface to assign to OVS br-ex
 openstack_instance_tunnel_ip: 10.0.111.32 #define interface address for tunnel interface....ex. {{ ansible_eth2.ipv4.addres }}
 ````
 host_vars/os-controller-01
@@ -638,14 +663,12 @@ host_vars/os-network-01
 ````
 ---
 ansible_ssh_host: 10.0.101.141
-openstack_instance_tunnel_int: eth1  #defines interface to assign to OVS br-ex
 openstack_instance_tunnel_ip: 10.0.111.21 #define interface address for tunnel interface....ex. {{ ansible_eth2.ipv4.addres }}
 ````
 host_vars/os-network-02
 ````
 ---
 ansible_ssh_host: 10.0.101.142
-openstack_instance_tunnel_int: eth1  #defines interface to assign to OVS br-ex
 openstack_instance_tunnel_ip: 10.0.111.22 #define interface address for tunnel interface....ex. {{ ansible_eth2.ipv4.addres }}
 ````
 
@@ -668,6 +691,20 @@ os-network-[01:02]
 
 [openstack-compute-nodes]
 os-compute-[01:02]
+````
+
+Notes
+-----
+
+Some things to note...
+In order to allow ping/ssh ingress on floating-IPs you need to create the following rules.
+````
+$ neutron security-group-rule-create --protocol icmp \
+  --direction ingress --remote-ip-prefix 0.0.0.0/0 default
+
+$ neutron security-group-rule-create --protocol tcp \
+  --port-range-min 22 --port-range-max 22 \
+  --direction ingress --remote-ip-prefix 0.0.0.0/0 default
 ````
 
 License

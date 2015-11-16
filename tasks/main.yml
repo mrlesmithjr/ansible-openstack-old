@@ -49,15 +49,23 @@
   when: inventory_hostname in groups['openstack-controller-nodes']
 
 - include: openstack_compute.yml
+  tags:
+    - neutron
   when: inventory_hostname in groups['openstack-compute-nodes']
 
 - include: openstack_neutron_controller_nodes.yml
+  tags:
+    - neutron
   when: openstack_networking  == "neutron" and inventory_hostname in groups['openstack-controller-nodes']
 
 - include: openstack_neutron_network_nodes.yml
+  tags:
+    - neutron
   when: openstack_networking  == "neutron" and inventory_hostname in groups['openstack-network-nodes']
 
 - include: openstack_neutron_compute_nodes.yml
+  tags:
+    - neutron
   when: openstack_networking  == "neutron" and inventory_hostname in groups['openstack-compute-nodes']
 
 - include: openstack_neutron_manage_external_networks.yml

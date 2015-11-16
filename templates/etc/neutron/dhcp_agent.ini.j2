@@ -71,6 +71,7 @@ dhcp_driver = neutron.agent.linux.dhcp.Dnsmasq
 
 # Domain to use for building the hostnames
 # dhcp_domain = openstacklocal
+dhcp_domain = {{ pri_domain_name }}
 
 # Override the default dnsmasq settings with this file
 # dnsmasq_config_file =
