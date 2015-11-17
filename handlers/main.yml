@@ -43,6 +43,21 @@
     name: ceilometer-alarm-notifier
     state: restarted
 
+- name: restart cinder-api
+  service:
+    name: cinder-api
+    state: restarted
+
+- name: restart cinder-scheduler
+  service:
+    name: cinder-scheduler
+    state: restarted
+
+- name: restart cinder-volume
+  service:
+    name: cinder-volume
+    state: restarted
+
 - name: restart glance-api
   service:
     name: glance-api
@@ -151,4 +166,9 @@
 - name: restart openvswitch-switch
   service:
     name: openvswitch-switch
+    state: restarted
+
+- name: restart tgt
+  service:
+    name: tgt
     state: restarted

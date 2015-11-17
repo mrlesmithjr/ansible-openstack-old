@@ -70,7 +70,6 @@
     path: /etc/nova/nova_populated
   register: nova_is_populated
   always_run: yes
-  when: mysql_master
 
 - name: openstack_compute_services | populating nova
   command: su -s /bin/sh -c "nova-manage db sync" nova

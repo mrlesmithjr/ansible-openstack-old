@@ -12,15 +12,22 @@ mysql_root_password: []  #Root password for the database
 openstack_admin_email: 'admin@{{ pri_domain_name }}'  #Defines admin users email
 openstack_admin_pass: []  #Password of user admin
 openstack_keystone_api_master: os-controller-01  #defines one of the controller nodes as a primary to create keystone users, endpoints, tenants and services...this gets around the issue of errors  since run_once does not work on keystone_user.
+openstack_ceilometer_dbhost: "{{ openstack_services_vip_fqdn }}"  #Defines ceilometer db host
 openstack_ceilometer_dbpass: []  #Database password for the Telemetry service
 openstack_ceilometer_pass: []  #Password of Telemetry service user ceilometer
 openstack_ceilometer_token_secret: []  #defines the token secret to configure Telemtry services.
 openstack_ceilometer_url: 'http://{{ openstack_services_vip_fqdn }}'
 openstack_ceilometer_verbose_logging: false  #Defines if ceilometer should enable verbose logging for troubleshooting
+openstack_cinder_dbhost: "{{ openstack_services_vip_fqdn }}"  #Defines cinder db host
 openstack_cinder_dbpass: []  #Database password for the Block Storage service
+openstack_cinder_lvm_device_filters:  #Defines which lvm devices to accept for scanning and which to reject..
+  - 'a/sda/'
+  - 'a/sdb/'
+  - 'r/.*/'
 openstack_cinder_install: true  #Defines if Cinder (Block-Storage) services should be installed.
 openstack_cinder_pass: []  #Password of Block Storage service user cinder
 openstack_cinder_url: 'http://{{ openstack_services_vip_fqdn }}'  #http://cinder.{{ pri_domain_name }}
+openstack_cinder_verbose_logging: false  #Defines if cinder should enable verbose logging for troubleshooting
 openstack_dash_dbpass: []  #Database password for the dashboard
 openstack_debian_repository: 'deb http://ubuntu-cloud.archive.canonical.com/ubuntu trusty-updates/{{ openstack_release }} main'
 openstack_demo_email: 'demo@{{ pri_domain_name }}'  #Defines demo users email

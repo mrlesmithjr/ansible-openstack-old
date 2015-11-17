@@ -68,7 +68,6 @@
     path: /etc/glance/glance_populated
   register: glance_is_populated
   always_run: yes
-  when: mysql_master
 
 - name: openstack_image_services | populating glance
   command: su -s /bin/sh -c "glance-manage db_sync" glance

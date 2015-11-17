@@ -109,9 +109,9 @@ auth_strategy = keystone
 #connection = <None>
 
 {% if openstack_services_vip_fqdn is defined %}
-connection = mongodb://ceilometer:{{ openstack_ceilometer_dbpass }}@{{ openstack_services_vip_fqdn }}:27017/ceilometer
+connection = mongodb://ceilometer:{{ openstack_ceilometer_dbpass }}@{{ openstack_ceilometer_dbhost }}:27017/ceilometer
 {% elif openstack_services_vip_fqdn is not defined and openstack_services_vip is defined %}
-connection = mongodb://ceilometer:{{ openstack_ceilometer_dbpass }}@{{ openstack_services_vip }}:27017/ceilometer
+connection = mongodb://ceilometer:{{ openstack_ceilometer_dbpass }}@{{ openstack_ceilometer_dbhost }}:27017/ceilometer
 {% endif %}
 
 # The SQLAlchemy connection string to use to connect to the slave

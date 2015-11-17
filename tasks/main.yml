@@ -90,6 +90,16 @@
     - cinder
   when: (openstack_cinder_install is defined and openstack_cinder_install) and inventory_hostname in groups['openstack-controller-nodes']
 
+- include: openstack_cinder_storage_nodes.yml
+  tags:
+    - cinder
+  when: (openstack_cinder_install is defined and openstack_cinder_install) and inventory_hostname in groups['openstack-storage-nodes']
+
+- include: openstack_cinder_compute_nodes.yml
+  tags:
+    - cinder
+  when: (openstack_cinder_install is defined and openstack_cinder_install) and inventory_hostname in groups['openstack-compute-nodes']
+
 - include: openstack_heat.yml
   tags:
     - heat

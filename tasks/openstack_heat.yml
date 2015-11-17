@@ -68,7 +68,6 @@
     path: /etc/heat/heat_domain_created
   register: heat_domain_created
   always_run: yes
-  when: mysql_master
 
 - name: openstack_heat | creating heat domain
   shell: ". /root/admin-openrc.sh heat-keystone-setup-domain --stack-user-domain-name heat_user_domain --stack-domain-admin heat_domain_admin --stack-domain-admin-password {{ openstack_heat_domain_pass }}"
@@ -92,7 +91,6 @@
     path: /etc/heat/heat_populated
   register: heat_is_populated
   always_run: yes
-  when: mysql_master
 
 - name: openstack_heat | populating heat
   command: su -s /bin/sh -c "heat-manage db_sync" heat
@@ -106,18 +104,6 @@
     path: /etc/heat/heat_populated
     state: touch
   when: heat_populated.changed
-
-- name: openstack_heat | configuring heat
-  template:
-    src: etc/heat/heat.conf.j2
-    dest: /etc/heat/heat.conf
-    owner: root
-    group: root
-    mode: 0644
-  notify:
-    - restart heat-api
-    - restart heat-api-cfn
-    - restart heat-engine
 
 - name: openstack_heat | deleting heat sqlite db
   file:
