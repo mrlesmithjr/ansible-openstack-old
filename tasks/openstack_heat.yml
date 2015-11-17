@@ -3,14 +3,13 @@
   mysql_db:
     name: heat
     state: present
-  when: (openstack_multi_controller_setup is defined and not openstack_multi_controller_setup) or openstack_multi_controller_setup is not defined
+  when: mysql_master
 
 - name: openstack_heat | creating Heat DB
   mysql_db:
     name: heat
     state: present
-  run_once: yes
-  when: openstack_multi_controller_setup is defined and openstack_multi_controller_setup
+  when: not mysql_master
 
 - name: openstack_heat | granting permissions to Heat DB
   mysql_user:
@@ -22,7 +21,7 @@
   with_items:
     - localhost
     - '%'
-  when: (openstack_multi_controller_setup is defined and not openstack_multi_controller_setup) or openstack_multi_controller_setup is not defined
+  when: mysql_master
 
 - name: openstack_heat | granting permissions to Heat DB
   mysql_user:
@@ -34,8 +33,7 @@
   with_items:
     - localhost
     - '%'
-  run_once: yes
-  when: openstack_multi_controller_setup is defined and openstack_multi_controller_setup
+  when: not mysql_master
 
 - name: openstack_heat | installing packages
   apt:
@@ -70,15 +68,11 @@
     path: /etc/heat/heat_domain_created
   register: heat_domain_created
   always_run: yes
+  when: mysql_master
 
 - name: openstack_heat | creating heat domain
   shell: ". /root/admin-openrc.sh heat-keystone-setup-domain --stack-user-domain-name heat_user_domain --stack-domain-admin heat_domain_admin --stack-domain-admin-password {{ openstack_heat_domain_pass }}"
-  when: not heat_domain_created.stat.exists and ((openstack_multi_controller_setup is defined and not openstack_multi_controller_setup) or openstack_multi_controller_setup is not defined)
-
-- name: openstack_heat | creating heat domain
-  shell: ". /root/admin-openrc.sh heat-keystone-setup-domain --stack-user-domain-name heat_user_domain --stack-domain-admin heat_domain_admin --stack-domain-admin-password {{ openstack_heat_domain_pass }}"
-  run_once: yes
-  when: openstack_multi_controller_setup is defined and openstack_multi_controller_setup
+  when: not heat_domain_created.stat.exists and mysql_master
 
 #- name: openstack_heat | creating heat domain
 #  keystone:
@@ -98,20 +92,14 @@
     path: /etc/heat/heat_populated
   register: heat_is_populated
   always_run: yes
+  when: mysql_master
 
 - name: openstack_heat | populating heat
   command: su -s /bin/sh -c "heat-manage db_sync" heat
 #  heat_manage:
 #    action: dbsync
   register: heat_populated
-  when: not heat_is_populated.stat.exists and ((openstack_multi_controller_setup is defined and not openstack_multi_controller_setup) or openstack_multi_controller_setup is not defined)
-
-- name: openstack_heat | populating heat
-  command: su -s /bin/sh -c "heat-manage db_sync" heat
-#  heat_manage:
-#    action: dbsync
-  run_once: yes
-  when: openstack_multi_controller_setup is defined and openstack_multi_controller_setup
+  when: not heat_is_populated.stat.exists and mysql_master
 
 - name: openstack_heat | marking heat as populated
   file:

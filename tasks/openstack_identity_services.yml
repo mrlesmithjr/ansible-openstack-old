@@ -1,18 +1,16 @@
 ---
 # Sets up and configures identity services for OpenStack
-# http://docs.openstack.org/juno/install-guide/install/apt/content/ch_keystone.html
 - name: openstack_identity_services | creating Keystone DB
   mysql_db:
     name: keystone
     state: present
-  when: (openstack_multi_controller_setup is defined and not openstack_multi_controller_setup) or openstack_multi_controller_setup is not defined
+  when: mysql_master
 
 - name: openstack_identity_services | creating Keystone DB
   mysql_db:
     name: keystone
     state: present
-  run_once: yes
-  when: openstack_multi_controller_setup is defined and openstack_multi_controller_setup
+  when: not mysql_master
 
 - name: openstack_identity_services | granting permissions to Keystone DB
   mysql_user:
@@ -24,7 +22,7 @@
   with_items:
     - localhost
     - '%'
-  when: (openstack_multi_controller_setup is defined and not openstack_multi_controller_setup) or openstack_multi_controller_setup is not defined
+  when: mysql_master
 
 - name: openstack_identity_services | granting permissions to Keystone DB
   mysql_user:
@@ -36,8 +34,7 @@
   with_items:
     - localhost
     - '%'
-  run_once: yes
-  when: openstack_multi_controller_setup is defined and openstack_multi_controller_setup
+  when: not mysql_master
 
 - name: openstack_identity_services | marking keystone to not auto start after install
   shell: 'echo "manual" > /etc/init/keystone.override'
@@ -115,13 +112,7 @@
 - name: openstack_identity_services | populating keystone
   command: su -s /bin/sh -c "keystone-manage db_sync" keystone
   register: keystone_populated
-  when: not keystone_is_populated.stat.exists and ((openstack_multi_controller_setup is defined and not openstack_multi_controller_setup) or openstack_multi_controller_setup is not defined)
-
-- name: openstack_identity_services | populating keystone
-  command: su -s /bin/sh -c "keystone-manage db_sync" keystone
-  register: keystone_populated
-  run_once: yes
-  when: not keystone_is_populated.stat.exists and (openstack_multi_controller_setup is defined and openstack_multi_controller_setup)
+  when: not keystone_is_populated.stat.exists and mysql_master
 
 - name: openstack_identity_services | marking keystone as populated
   file:

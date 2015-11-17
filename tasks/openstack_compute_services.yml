@@ -3,14 +3,13 @@
   mysql_db:
     name: nova
     state: present
-  when: (openstack_multi_controller_setup is defined and not openstack_multi_controller_setup) or openstack_multi_controller_setup is not defined
+  when: mysql_master
 
 - name: openstack_compute_services | creating Nova DB
   mysql_db:
     name: nova
     state: present
-  run_once: yes
-  when: openstack_multi_controller_setup is defined and openstack_multi_controller_setup
+  when: not mysql_master
 
 - name: openstack_compute_services | granting permissions to Nova DB
   mysql_user:
@@ -22,7 +21,7 @@
   with_items:
     - localhost
     - '%'
-  when: (openstack_multi_controller_setup is defined and not openstack_multi_controller_setup) or openstack_multi_controller_setup is not defined
+  when: mysql_master
 
 - name: openstack_compute_services | granting permissions to Nova DB
   mysql_user:
@@ -34,8 +33,7 @@
   with_items:
     - localhost
     - '%'
-  run_once: yes
-  when: openstack_multi_controller_setup is defined and openstack_multi_controller_setup
+  when: not mysql_master
 
 - name: openstack_compute_services | install nova packages
   apt:
@@ -72,17 +70,12 @@
     path: /etc/nova/nova_populated
   register: nova_is_populated
   always_run: yes
+  when: mysql_master
 
 - name: openstack_compute_services | populating nova
   command: su -s /bin/sh -c "nova-manage db sync" nova
   register: nova_populated
-  when: not nova_is_populated.stat.exists and ((openstack_multi_controller_setup is defined and not openstack_multi_controller_setup) or openstack_multi_controller_setup is not defined)
-
-- name: openstack_compute_services | populating nova
-  command: su -s /bin/sh -c "nova-manage db sync" nova
-  register: nova_populated
-  run_once: yes
-  when: not nova_is_populated.stat.exists and openstack_multi_controller_setup is defined and openstack_multi_controller_setup
+  when: not nova_is_populated.stat.exists and mysql_master
 
 - name: openstack_compute_services | marking nova as populated
   file:

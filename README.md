@@ -12,10 +12,16 @@ You also need to define Multi-Cast addresses for Pacemaker/Corosync HAProxy and 
 
 Also make sure to define one of your controller nodes as openstack_keystone_api_master...using keystone_user module does not work with run_once and causes additional controller nodes to fail when creating
 keystone users, endpoints, tenants and services...
+
+Also make sure to define one of your controller nodes as mysql_master...should be the same as the node defined as openstack_keystone_api_master...this should already be set if installing ansible-mariadb-galera-cluster role.
+
 ````
 openstack_keystone_api_master: os-controller-01
 ````
-
+host_vars/os-controller-01.yml
+````
+mysql_master: true
+````
 group_vars/openstack-controller-nodes/main.yml
 ````
 corosync_mcastaddr: 239.255.42.1
@@ -44,6 +50,7 @@ enable_haproxy_remote_syslog: true
 haproxy_admin_user: admin
 haproxy_admin_password: admin
 haproxy_admin_port: 9090
+mysql_master: false  #defines if inventory_hostname is considered mysql_master...This needs to be defined on one controller node in host_vars/os-controller-xx ..This should already be set for building Galera Cluster. **IMPORTANT***
 mysql_root_password: []  #Root password for the database
 openstack_admin_email: 'admin@{{ pri_domain_name }}'  #Defines admin users email
 openstack_admin_pass: []  #Password of user admin
@@ -54,7 +61,9 @@ openstack_ceilometer_token_secret: []  #defines the token secret to configure Te
 openstack_ceilometer_url: 'http://{{ openstack_services_vip_fqdn }}'
 openstack_ceilometer_verbose_logging: false  #Defines if ceilometer should enable verbose logging for troubleshooting
 openstack_cinder_dbpass: []  #Database password for the Block Storage service
+openstack_cinder_install: true  #Defines if Cinder (Block-Storage) services should be installed.
 openstack_cinder_pass: []  #Password of Block Storage service user cinder
+openstack_cinder_url: 'http://{{ openstack_services_vip_fqdn }}'  #http://cinder.{{ pri_domain_name }}
 openstack_dash_dbpass: []  #Database password for the dashboard
 openstack_debian_repository: 'deb http://ubuntu-cloud.archive.canonical.com/ubuntu trusty-updates/{{ openstack_release }} main'
 openstack_demo_email: 'demo@{{ pri_domain_name }}'  #Defines demo users email
@@ -103,6 +112,14 @@ openstack_keystone_endpoints:
     public_url: "{{ openstack_ceilometer_url }}:8777"
     internal_url: "{{ openstack_ceilometer_url }}:8777"
     admin_url: "{{ openstack_ceilometer_url }}:8777"
+  - service_name: cinder
+    public_url: "{{ openstack_cinder_url }}:8776/v2/%(tenant_id)s"
+    internal_url: "{{ openstack_cinder_url }}:8776/v2/%(tenant_id)s"
+    admin_url: "{{ openstack_cinder_url }}:8776/v2/%(tenant_id)s"
+  - service_name: cinderv2
+    public_url: "{{ openstack_cinder_url }}:8776/v2/%(tenant_id)s"
+    internal_url: "{{ openstack_cinder_url }}:8776/v2/%(tenant_id)s"
+    admin_url: "{{ openstack_cinder_url }}:8776/v2/%(tenant_id)s"
   - service_name: glance
     public_url: "{{ openstack_glance_url }}:9292"
     internal_url: "{{ openstack_glance_url }}:9292"
@@ -135,6 +152,9 @@ openstack_keystone_roles:  #Tenants are now Projects
     user: ceilometer
     tenant: service
   - name: admin
+    user: cinder
+    tenant: service
+  - name: admin
     user: glance
     tenant: service
   - name: admin
@@ -159,6 +179,12 @@ openstack_keystone_services:
   - name: ceilometer
     description: "Telemetry"
     service_type: metering
+  - name: cinder
+    description: "OpenStack Block Storage"
+    service_type: volume
+  - name: cinderv2
+    description: "OpenStack Block Storage"
+    service_type: volumev2
   - name: glance
     description: "OpenStack Image Service"
     service_type: image
@@ -193,6 +219,9 @@ openstack_keystone_users:  #Tenants are now Projects
     tenant: admin
   - name: ceilometer
     password: "{{ openstack_ceilometer_pass }}"
+    tenant: service
+  - name: cinder
+    password: "{{ openstack_cinder_pass }}"
     tenant: service
   - name: demo
     password: "{{ openstack_demo_pass }}"
@@ -231,6 +260,8 @@ openstack_neutron_bridges:  #defines OVS bridges and physical interface(s)
       - eth2
 openstack_neutron_dbhost: '{{ openstack_services_vip_fqdn }}'  #Defines neutron db host
 openstack_neutron_dbpass: []  #Database password for the Networking service
+openstack_neutron_dhcp_domain: '{{ pri_domain_name }}'  #Defines the domain name assigned to tenant instances
+openstack_neutron_dhcp_dnsmasq_dns_servers: '8.8.8.8,8.8.4.4'  # Comma-separated list of DNS servers which will be used by dnsmasq as forwarders.
 openstack_neutron_external_networks: #Define external networking resources
   - name: external-networks  #description for networks
     login_password: "{{ openstack_admin_pass }}"

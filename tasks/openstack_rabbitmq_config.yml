@@ -19,5 +19,4 @@
     read_priv: ".*"
     write_priv: ".*"
     state: present
-  run_once: yes
   when: openstack_multi_controller_setup is defined and openstack_multi_controller_setup

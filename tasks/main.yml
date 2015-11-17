@@ -85,6 +85,11 @@
     - horizon
   when: (openstack_horizon_install is defined and openstack_horizon_install) and inventory_hostname in groups['openstack-controller-nodes']
 
+- include: openstack_cinder_controller_nodes.yml
+  tags:
+    - cinder
+  when: (openstack_cinder_install is defined and openstack_cinder_install) and inventory_hostname in groups['openstack-controller-nodes']
+
 - include: openstack_heat.yml
   tags:
     - heat

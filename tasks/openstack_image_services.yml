@@ -3,14 +3,13 @@
   mysql_db:
     name: glance
     state: present
-  when: (openstack_multi_controller_setup is defined and not openstack_multi_controller_setup) or openstack_multi_controller_setup is not defined
+  when: mysql_master
 
 - name: openstack_image_services | creating Glance DB
   mysql_db:
     name: glance
     state: present
-  run_once: yes
-  when: openstack_multi_controller_setup is defined and openstack_multi_controller_setup
+  when: not mysql_master
 
 - name: openstack_image_services | granting permissions to Glance DB
   mysql_user:
@@ -22,7 +21,7 @@
   with_items:
     - localhost
     - '%'
-  when: (openstack_multi_controller_setup is defined and not openstack_multi_controller_setup) or openstack_multi_controller_setup is not defined
+  when: mysql_master
 
 - name: openstack_image_services | granting permissions to Glance DB
   mysql_user:
@@ -31,11 +30,10 @@
     priv: "glance.*:ALL"
     host: "{{ item }}"
     state: present
-  run_once: yes
   with_items:
     - localhost
     - '%'
-  when: openstack_multi_controller_setup is defined and openstack_multi_controller_setup
+  when: not mysql_master
 
 - name: openstack_image_services | installing packages
   apt:
@@ -70,17 +68,12 @@
     path: /etc/glance/glance_populated
   register: glance_is_populated
   always_run: yes
+  when: mysql_master
 
 - name: openstack_image_services | populating glance
   command: su -s /bin/sh -c "glance-manage db_sync" glance
   register: glance_populated
-  when: not glance_is_populated.stat.exists and ((openstack_multi_controller_setup is defined and not openstack_multi_controller_setup) or openstack_multi_controller_setup is not defined)
-
-- name: openstack_image_services | populating glance
-  command: su -s /bin/sh -c "glance-manage db_sync" glance
-  register: glance_populated
-  run_once: yes
-  when: not glance_is_populated.stat.exists and openstack_multi_controller_setup is defined and openstack_multi_controller_setup
+  when: not glance_is_populated.stat.exists and mysql_master
 
 - name: openstack_image_services | marking glance as populated
   file:

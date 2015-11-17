@@ -71,7 +71,9 @@ dhcp_driver = neutron.agent.linux.dhcp.Dnsmasq
 
 # Domain to use for building the hostnames
 # dhcp_domain = openstacklocal
-dhcp_domain = {{ pri_domain_name }}
+{% if openstack_neutron_dhcp_domain is defined and openstack_neutron_dhcp_domain != None %}
+dhcp_domain = {{ openstack_neutron_dhcp_domain }}
+{% endif %}
 
 # Override the default dnsmasq settings with this file
 # dnsmasq_config_file =
@@ -79,6 +81,9 @@ dhcp_domain = {{ pri_domain_name }}
 # Comma-separated list of DNS servers which will be used by dnsmasq
 # as forwarders.
 # dnsmasq_dns_servers =
+{% if openstack_neutron_dhcp_dnsmasq_dns_servers is defined and openstack_neutron_dhcp_dnsmasq_dns_servers != None %}
+dnsmasq_dns_servers = {{ openstack_neutron_dhcp_dnsmasq_dns_servers }}
+{% endif %}
 
 # Limit number of leases to prevent a denial-of-service.
 # dnsmasq_lease_max = 16777216
