@@ -32,6 +32,8 @@
     primitive failover-ip ocf:heartbeat:IPaddr2
     params ip="{{ openstack_services_vip }}" cidr_netmask="{{ openstack_services_vip_cidr }}"
     op monitor interval="1s"
+    commit=yes
+  ignore_errors: yes  #added this to get around having to set this setting using shell...it works the first time and then fails the next becuase it is already set...will investigate..
   tags:
     - pacemaker
   notify:

@@ -57,11 +57,16 @@
     - restart heat-api-cfn
     - restart heat-engine
 
-- name: openstack_heat | creating admin script(s)  #creating this to source in order to create heat domain
+- name: openstack_heat | creating client script(s)  #creating this to source in order to create heat domain
   template:
-    src: admin-openrc.sh.j2
-    dest: /root/admin-openrc.sh
+    src: "{{ item }}-openrc.sh.j2"
+    dest: "/root/{{ item }}-openrc.sh"
     mode: 0700
+  tags:
+    - create-openstack-client-scripts
+  with_items:
+    - admin
+    - demo
 
 - name: openstack_heat | checking if heat domain has been created
   stat:

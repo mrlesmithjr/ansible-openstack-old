@@ -197,3 +197,14 @@
     job: "/usr/bin/keystone-manage token_flush >/var/log/keystone/keystone-tokenflush.log 2>&1"
     state: present
     cron_file: keystone_token_flush
+
+- name: openstack_identity_services | creating client script(s)  #creating this to source in order to create heat domain
+  template:
+    src: "{{ item }}-openrc.sh.j2"
+    dest: "/root/{{ item }}-openrc.sh"
+    mode: 0700
+  tags:
+    - create-openstack-client-scripts
+  with_items:
+    - admin
+    - demo

@@ -20,6 +20,14 @@
     group: root
     mode: 0644
 
+- name: openstack_cinder_storage_nodes | ensuring image conversion directory exists
+  file:
+    path: "{{ openstack_cinder_image_conversion_dir }}"
+    state: directory
+    owner: cinder
+    group: cinder
+    mode: 0774
+
 - name: openstack_cinder_storage_nodes | configuring cinder
   template:
     src: etc/cinder/cinder.conf.j2

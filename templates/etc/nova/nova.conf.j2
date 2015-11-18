@@ -26,6 +26,7 @@ vncserver_proxyclient_address={{ openstack_nova_my_ip }}
 novncproxy_base_url=http://{{ openstack_services_vip_fqdn }}:6080/vnc_auto.html
 vif_plugging_timeout=10
 vif_plugging_is_fatal=False
+instance_build_timeout = 0
 {%   if openstack_networking is defined and openstack_networking == "neutron" %}
 network_api_class = nova.network.neutronv2.api.API
 security_group_api = neutron
@@ -71,13 +72,6 @@ connection=mysql://nova:{{ openstack_nova_dbpass }}@{{ openstack_nova_dbhost }}/
 [glance]
 {% if inventory_hostname in groups['openstack-compute-nodes'] %}
 host={{ openstack_glance_dbhost }}
-{%   if openstack_multi_controller_setup is defined and openstack_multi_controller_setup %}
-{%     if openstack_services_vip_fqdn is defined %}
-api_servers = {{ openstack_services_vip_fqdn }}
-{%     elif openstack_services_vip_fqdn is not defined and openstack_services_vip is defined %}
-api_servers = {{ openstack_services_vip }}
-{%     endif %}
-{%   endif %}
 {% endif %}
 
 {% if inventory_hostname in groups['openstack-controller-nodes'] %}
@@ -155,4 +149,12 @@ rabbit_password={{ openstack_rabbit_pass }}
 rabbit_host={{ openstack_rabbit_host }}
 rabbit_userid={{ openstack_rabbit_user }}
 rabbit_password={{ openstack_rabbit_pass }}
+{% endif %}
+
+{% if openstack_multi_controller_setup is defined and openstack_multi_controller_setup %}
+rabbit_hosts={% for host in groups['openstack-controller-nodes'] %}{{ host }}:5672{% if not loop.last %},{% endif %}{% endfor %}
+
+rabbit_retry_interval=1
+rabbit_retry_backoff=2
+rabbit_max_retries=0
 {% endif %}

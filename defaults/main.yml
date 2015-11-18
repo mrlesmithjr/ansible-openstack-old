@@ -20,11 +20,13 @@ openstack_ceilometer_url: 'http://{{ openstack_services_vip_fqdn }}'
 openstack_ceilometer_verbose_logging: false  #Defines if ceilometer should enable verbose logging for troubleshooting
 openstack_cinder_dbhost: "{{ openstack_services_vip_fqdn }}"  #Defines cinder db host
 openstack_cinder_dbpass: []  #Database password for the Block Storage service
+openstack_cinder_image_conversion_dir: /images/conversion  #Defines a temporary conversion directory to use for Cinder.
+openstack_cinder_install: true  #Defines if Cinder (Block-Storage) services should be installed.
 openstack_cinder_lvm_device_filters:  #Defines which lvm devices to accept for scanning and which to reject..
   - 'a/sda/'
   - 'a/sdb/'
   - 'r/.*/'
-openstack_cinder_install: true  #Defines if Cinder (Block-Storage) services should be installed.
+openstack_cinder_osapi_volume_listen: '{{ ansible_eth0.ipv4.address }}' #defines IP address on which OpenStack Volume API listens
 openstack_cinder_pass: []  #Password of Block Storage service user cinder
 openstack_cinder_url: 'http://{{ openstack_services_vip_fqdn }}'  #http://cinder.{{ pri_domain_name }}
 openstack_cinder_verbose_logging: false  #Defines if cinder should enable verbose logging for troubleshooting
@@ -35,6 +37,7 @@ openstack_demo_pass: []  #Password of user demo
 openstack_enable_remote_syslog: false  #defines if all openstack services should write to syslog which allows remote syslog functionality...
 openstack_glance_dbhost: "{{ openstack_services_vip_fqdn }}"  #Defines glance db host
 openstack_glance_dbpass: []  #Database password for Image Service
+openstack_glance_default_store: file  #Defines the storage backend to use by default when storing images in Glance....ex...file, swift, s3, rbd, sheepdog, cinder or vsphere
 openstack_glance_images:  #define cloud images to automatically upload to Glance
   - name: cirros
     container_format: bare
@@ -225,7 +228,7 @@ openstack_neutron_bridges:  #defines OVS bridges and physical interface(s)
 openstack_neutron_dbhost: '{{ openstack_services_vip_fqdn }}'  #Defines neutron db host
 openstack_neutron_dbpass: []  #Database password for the Networking service
 openstack_neutron_dhcp_domain: '{{ pri_domain_name }}'  #Defines the domain name assigned to tenant instances
-openstack_neutron_dhcp_dnsmasq_dns_servers: '8.8.8.8,8.8.4.4'  # Comma-separated list of DNS servers which will be used by dnsmasq as forwarders.
+openstack_neutron_dhcp_dnsmasq_dns_servers: '8.8.8.8, 8.8.4.4'  # Comma-separated list of DNS servers which will be used by dnsmasq as forwarders.
 openstack_neutron_external_networks: #Define external networking resources
   - name: external-networks  #description for networks
     login_password: "{{ openstack_admin_pass }}"

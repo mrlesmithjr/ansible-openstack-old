@@ -1,11 +1,4 @@
 ---
-# Basic Environment Configurations
-#- name: openstack_basic | restarting mysql
-#  service:
-#    name: mysql
-#    state: restarted
-#  ignore_errors: yes
-
 - name: openstack_basic | cleaning up ntp dhcp configurations
   file:
     path: /var/lib/ntp/ntp.conf.dhcp
@@ -22,14 +15,6 @@
   apt_repository:
     repo: "{{ openstack_debian_repository }}"
     state: present
-
-#- name: openstack_basic | updated /etc/hosts
-#  lineinfile:
-#    dest: /etc/hosts
-#    regexp: '.*{{ item }}$'
-#    line: "{{ hostvars[item]['ansible_ssh_host'] }} {{ item }}"
-#    state: present
-#  with_items: groups['openstack-nodes']
 
 - name: openstack_haproxy_config | allowing VIP to come up on nodes
   sysctl:

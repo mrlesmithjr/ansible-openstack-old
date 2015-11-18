@@ -51,6 +51,7 @@
 - include: openstack_compute.yml
   tags:
     - neutron
+    - nova
   when: inventory_hostname in groups['openstack-compute-nodes']
 
 - include: openstack_neutron_controller_nodes.yml
@@ -66,6 +67,7 @@
 - include: openstack_neutron_compute_nodes.yml
   tags:
     - neutron
+    - nova
   when: openstack_networking  == "neutron" and inventory_hostname in groups['openstack-compute-nodes']
 
 - include: openstack_neutron_manage_external_networks.yml
@@ -114,6 +116,11 @@
   tags:
     - telemetry
   when: (openstack_telementry_install is defined and openstack_telementry_install) and inventory_hostname in groups['openstack-compute-nodes']
+
+- include: openstack_telemetry_storage_nodes.yml
+  tags:
+    - telemetry
+  when: (openstack_telementry_install is defined and openstack_telementry_install) and inventory_hostname in groups['openstack-storage-nodes']
 
 - include: openstack_group_based_policy.yml
   tags:
