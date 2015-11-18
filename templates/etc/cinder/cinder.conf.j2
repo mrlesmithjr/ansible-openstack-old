@@ -1,88 +1,41 @@
 [DEFAULT]
-rootwrap_config = /etc/cinder/rootwrap.conf
-api_paste_confg = /etc/cinder/api-paste.ini
-iscsi_helper = tgtadm
-volume_name_template = volume-%s
-volume_group = cinder-volumes
 {% if openstack_cinder_verbose_logging is defined and openstack_cinder_verbose_logging %}
 verbose = True
 {% elif openstack_cinder_verbose_logging is defined and not openstack_cinder_verbose_logging %}
 verbose = False
 {% endif %}
+rootwrap_config = /etc/cinder/rootwrap.conf
+api_paste_confg = /etc/cinder/api-paste.ini
+iscsi_helper = tgtadm
+volume_name_template = volume-%s
 auth_strategy = keystone
 state_path = /var/lib/cinder
-lock_path = /var/lock/cinder
 volumes_dir = /var/lib/cinder/volumes
+glance_api_version = 2
+
 {% if inventory_hostname in groups['openstack-controller-nodes'] %}
 rpc_backend = rabbit
 my_ip={{ openstack_nova_my_ip }}
-osapi_volume_listen = {{ openstack_cinder_osapi_volume_listen }}
-{%   if openstack_multi_controller_setup is defined and openstack_multi_controller_setup %}
-{%     if openstack_services_vip_fqdn is defined %}
-glance_host = {{ openstack_services_vip_fqdn }}
-glance_api_servers = {{ openstack_services_vip_fqdn }}:9292
-{%     elif openstack_services_vip_fqdn is not defined and openstack_services_vip is defined %}
-glance_host = {{ openstack_services_vip }}
-glance_api_servers = {{ openstack_services_vip }}:9292
-{%     endif %}
-{%   endif %}
 {% endif %}
+
 {% if inventory_hostname in groups['openstack-storage-nodes'] %}
 rpc_backend = rabbit
-my_ip = {{ openstack_nova_my_ip }}
-enabled_backends = lvm
+my_ip={{ openstack_nova_my_ip }}
 {%   if openstack_multi_controller_setup is defined and openstack_multi_controller_setup %}
 {%     if openstack_services_vip_fqdn is defined %}
 glance_host = {{ openstack_services_vip_fqdn }}
-glance_api_servers = {{ openstack_services_vip_fqdn }}:9292
+#glance_api_servers = {{ openstack_services_vip_fqdn }}:9292
 {%     elif openstack_services_vip_fqdn is not defined and openstack_services_vip is defined %}
 glance_host = {{ openstack_services_vip }}
-glance_api_servers = {{ openstack_services_vip }}:9292
+#glance_api_servers = {{ openstack_services_vip }}:9292
 {%     endif %}
-{%     if openstack_telementry_install is defined and openstack_telementry_install %}
+{%   endif %}
+{%   if openstack_telementry_install is defined and openstack_telementry_install %}
 control_exchange = cinder
 notification_driver = messagingv2
-{%     endif %}
-image_conversion_dir = {{ openstack_cinder_image_conversion_dir }}
 {%   endif %}
+#image_conversion_dir = {{ openstack_cinder_image_conversion_dir }}
 {% endif %}
-
-# Default glance host name or IP (string value)
-#glance_host=$my_ip
-
-# Default glance port (integer value)
-#glance_port=9292
-
-# A list of the glance API servers available to cinder
-# ([hostname|ip]:port) (list value)
-#glance_api_servers=$glance_host:$glance_port
-
-# Version of the glance API to use (integer value)
-glance_api_version = 2
-
-# Number retries when downloading an image from glance
-# (integer value)
-#glance_num_retries=0
-
-# Allow to perform insecure SSL (https) requests to glance
-# (boolean value)
-#glance_api_insecure=false
-
-# Enables or disables negotiation of SSL layer compression. In
-# some cases disabling compression can improve data
-# throughput, such as when high network bandwidth is available
-# and you use compressed image formats like qcow2. (boolean
-# value)
-#glance_api_ssl_compression=false
-
-# Location of ca certificates file to use for glance client
-# requests. (string value)
-#glance_ca_certificates_file=<None>
-
-# http/https timeout value for glance operations. If no value
-# (None) is supplied here, the glanceclient default value is
-# used. (integer value)
-#glance_request_timeout=<None>
 
 [database]
 {% if inventory_hostname in groups['openstack-controller-nodes'] %}
@@ -125,32 +78,34 @@ iscsi_helper = tgtadm
 [oslo_concurrency]
 lock_path = /var/lock/cinder
 
+
 [oslo_messaging_rabbit]
 {% if inventory_hostname in groups['openstack-controller-nodes'] %}
-rabbit_host = {{ openstack_rabbit_host }}
-rabbit_userid = {{ openstack_rabbit_user }}
-rabbit_password = {{ openstack_rabbit_pass }}
-{% endif %}
-{% if inventory_hostname in groups['openstack-storage-nodes'] %}
-rabbit_host = {{ openstack_rabbit_host }}
-rabbit_userid = {{ openstack_rabbit_user }}
-rabbit_password = {{ openstack_rabbit_pass }}
-{% endif %}
-
-# RabbitMQ HA cluster host:port pairs. (list value)
-# Deprecated group/name - [DEFAULT]/rabbit_hosts
-#rabbit_hosts = $rabbit_host:$rabbit_port
-{% if openstack_multi_controller_setup is defined and openstack_multi_controller_setup %}
-rabbit_hosts={% for host in groups['openstack-controller-nodes'] %}{{ host }}:5672{% if not loop.last %},{% endif %}{% endfor %}
-
-{% endif %}
-
-# Use HA queues in RabbitMQ (x-ha-policy: all). If you change this option, you
-# must wipe the RabbitMQ database. (boolean value)
-# Deprecated group/name - [DEFAULT]/rabbit_ha_queues
-#rabbit_ha_queues = false
-{% if openstack_multi_controller_setup is defined and openstack_multi_controller_setup %}
+rabbit_host={{ openstack_rabbit_host }}
+rabbit_userid={{ openstack_rabbit_user }}
+rabbit_password={{ openstack_rabbit_pass }}
+{%   if openstack_multi_controller_setup is defined and openstack_multi_controller_setup %}
 rabbit_durable_queues=true
 rabbit_ha_queues=true
-notifier_strategy = rabbit
+rabbit_hosts={% for host in groups['openstack-controller-nodes'] %}{{ host }}:5672{% if not loop.last %},{% endif %}{% endfor %}
+
+rabbit_retry_interval=1
+rabbit_retry_backoff=2
+rabbit_max_retries=0
+{%   endif %}
+{% endif %}
+
+{% if inventory_hostname in groups['openstack-storage-nodes'] %}
+rabbit_host={{ openstack_rabbit_host }}
+rabbit_userid={{ openstack_rabbit_user }}
+rabbit_password={{ openstack_rabbit_pass }}
+{%   if openstack_multi_controller_setup is defined and openstack_multi_controller_setup %}
+rabbit_durable_queues=true
+rabbit_ha_queues=true
+rabbit_hosts={% for host in groups['openstack-controller-nodes'] %}{{ host }}:5672{% if not loop.last %},{% endif %}{% endfor %}
+
+rabbit_retry_interval=1
+rabbit_retry_backoff=2
+rabbit_max_retries=0
+{%   endif %}
 {% endif %}
