@@ -2753,7 +2753,7 @@
 #rabbit_use_ssl=false
 
 # The RabbitMQ userid. (string value)
-#rabbit_userid=guest
+#rabbit_userid = guest
 
 # The RabbitMQ password. (string value)
 #rabbit_password=guest

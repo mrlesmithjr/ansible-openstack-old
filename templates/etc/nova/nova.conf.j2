@@ -140,19 +140,19 @@ lock_path=/var/lib/nova/tmp
 
 [oslo_messaging_rabbit]
 {% if inventory_hostname in groups['openstack-compute-nodes'] %}
-rabbit_host={{ openstack_rabbit_host }}
-rabbit_userid={{ openstack_rabbit_user }}
+rabbit_host = {{ openstack_rabbit_host }}
+rabbit_userid = {{ openstack_rabbit_user }}
 rabbit_password={{ openstack_rabbit_pass }}
 {% endif %}
 
 {% if inventory_hostname in groups['openstack-controller-nodes'] %}
-rabbit_host={{ openstack_rabbit_host }}
-rabbit_userid={{ openstack_rabbit_user }}
+rabbit_host = {{ openstack_rabbit_host }}
+rabbit_userid = {{ openstack_rabbit_user }}
 rabbit_password={{ openstack_rabbit_pass }}
 {% endif %}
 
 {% if openstack_multi_controller_setup is defined and openstack_multi_controller_setup %}
-rabbit_hosts={% for host in groups['openstack-controller-nodes'] %}{{ host }}:5672{% if not loop.last %},{% endif %}{% endfor %}
+#rabbit_hosts={% for host in groups['openstack-controller-nodes'] %}{{ host }}:5672{% if not loop.last %},{% endif %}{% endfor %}
 
 rabbit_retry_interval=1
 rabbit_retry_backoff=2

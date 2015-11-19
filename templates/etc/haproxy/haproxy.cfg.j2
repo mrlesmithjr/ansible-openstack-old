@@ -61,7 +61,11 @@ listen cinder_api_cluster
   option  httpchk
   option  tcplog
 {% for host in groups['openstack-controller-nodes'] %}
-  server {{ host }} {{ host }}:8776 check inter 2000 rise 2 fall 5
+{%   if host == openstack_keystone_api_master %}
+server {{ host }} {{ host }}:8776 check inter 2000 rise 2 fall 5
+{%   elif host != openstack_keystone_api_master %}
+server {{ host }} {{ host }}:8776 backup check inter 2000 rise 2 fall 5
+{%   endif %}
 {% endfor %}
 
 listen dashboard_cluster-Horizon
@@ -124,7 +128,11 @@ listen keystone_admin_cluster
   option  httpchk
   option  tcplog
 {% for host in groups['openstack-controller-nodes'] %}
-  server {{ host }} {{ host }}:35357 check inter 2000 rise 2 fall 5
+{%   if host == openstack_keystone_api_master %}
+server {{ host }} {{ host }}:35357 check inter 2000 rise 2 fall 5
+{%   elif host != openstack_keystone_api_master %}
+server {{ host }} {{ host }}:35357 backup check inter 2000 rise 2 fall 5
+{%   endif %}
 {% endfor %}
 
 listen keystone_public_internal_cluster
@@ -134,7 +142,11 @@ listen keystone_public_internal_cluster
   option  httpchk
   option  tcplog
 {% for host in groups['openstack-controller-nodes'] %}
-  server {{ host }} {{ host }}:5000 check inter 2000 rise 2 fall 5
+{%   if host == openstack_keystone_api_master %}
+server {{ host }} {{ host }}:5000 check inter 2000 rise 2 fall 5
+{%   elif host != openstack_keystone_api_master %}
+server {{ host }} {{ host }}:5000 backup check inter 2000 rise 2 fall 5
+{%   endif %}
 {% endfor %}
 
 listen mongodb
@@ -194,7 +206,11 @@ listen rabbitmq_cluster
   option  tcpka
   option  tcplog
 {% for host in groups['openstack-controller-nodes'] %}
+{%   if host == rabbitmq_master %}
   server {{ host }} {{ host }}:5672 check inter 2000 rise 2 fall 5
+{%   elif host != rabbitmq_master %}
+server {{ host }} {{ host }}:5672 backup check inter 2000 rise 2 fall 5
+{%   endif %}
 {% endfor %}
 
 listen rabbitmq_cluster-Admin

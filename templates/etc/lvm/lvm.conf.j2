@@ -68,7 +68,7 @@ devices {
 {% if openstack_cinder_lvm_device_filters is not defined %}
     filter = [ "a/.*/" ]
 {% elif openstack_cinder_lvm_device_filters is defined %}
-    filter = [ {% for item in openstack_cinder_lvm_device_filters %}"{{ item }}"{% if not loop.last %},{% endif %}{% endfor %} ]
+    filter = [ {% for item in openstack_cinder_lvm_device_filters %}"{{ item }}"{% if not loop.last %}, {% endif %}{% endfor %} ]
 {% endif %}
 
     # Exclude the cdrom drive

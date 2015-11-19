@@ -578,11 +578,11 @@ admin_password = {{ openstack_ceilometer_pass }}
 #rabbit_hosts = $rabbit_host:$rabbit_port
 {% if openstack_multi_controller_setup is defined and openstack_multi_controller_setup %}
 {%   if inventory_hostname in groups['openstack-compute-nodes'] %}
-rabbit_hosts={% for host in groups['openstack-controller-nodes'] %}{{ host }}:5672{% if not loop.last %},{% endif %}{% endfor %}
+#rabbit_hosts={% for host in groups['openstack-controller-nodes'] %}{{ host }}:5672{% if not loop.last %},{% endif %}{% endfor %}
 
 {%   endif %}
 {%   if inventory_hostname in groups['openstack-controller-nodes'] %}
-rabbit_hosts={% for host in groups['openstack-controller-nodes'] %}{{ host }}:5672{% if not loop.last %},{% endif %}{% endfor %}
+#rabbit_hosts={% for host in groups['openstack-controller-nodes'] %}{{ host }}:5672{% if not loop.last %},{% endif %}{% endfor %}
 
 {%   endif %}
 {% endif %}

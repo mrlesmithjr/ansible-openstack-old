@@ -124,15 +124,15 @@ rabbit_password = guest
 rpc_backend = rabbit
 
 rabbit_host = {{ openstack_rabbit_host }}
-rabbit_userid = openstack
+rabbit_userid = {{ openstack_rabbit_user }}
 rabbit_password = {{ openstack_rabbit_pass }}
 {%   endif %}
 {% endif %}
 {% if (openstack_multi_controller_setup is defined and not openstack_multi_controller_setup) or openstack_multi_controller_setup is not defined %}
 rabbit_durable_queues = False
 {% elif openstack_multi_controller_setup is defined and openstack_multi_controller_setup %}
-rabbit_durable_queues=true
-rabbit_ha_queues=true
+rabbit_durable_queues = true
+rabbit_ha_queues = true
 {% endif %}
 rabbit_port = 5672
 rabbit_use_ssl = false

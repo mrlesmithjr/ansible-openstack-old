@@ -641,7 +641,7 @@ rabbit_host = {{ openstack_rabbit_host }}
 # Deprecated group/name - [DEFAULT]/rabbit_hosts
 #rabbit_hosts = $rabbit_host:$rabbit_port
 {% if openstack_multi_controller_setup is defined and openstack_multi_controller_setup %}
-rabbit_hosts={% for host in groups['openstack-controller-nodes'] %}{{ host }}:5672{% if not loop.last %},{% endif %}{% endfor %}
+#rabbit_hosts={% for host in groups['openstack-controller-nodes'] %}{{ host }}:5672{% if not loop.last %},{% endif %}{% endfor %}
 
 {% endif %}
 
@@ -691,8 +691,8 @@ rabbit_password = {{ openstack_rabbit_pass }}
 # Deprecated group/name - [DEFAULT]/rabbit_ha_queues
 #rabbit_ha_queues = false
 {% if openstack_multi_controller_setup is defined and openstack_multi_controller_setup %}
-rabbit_durable_queues=true
-rabbit_ha_queues=true
+rabbit_durable_queues = true
+rabbit_ha_queues = true
 {% endif %}
 
 # Number of seconds after which the Rabbit broker is considered down if

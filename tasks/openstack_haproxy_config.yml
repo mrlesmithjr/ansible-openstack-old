@@ -40,7 +40,7 @@
     - pacemaker commit
   when: openstack_multi_controller_setup is defined and openstack_multi_controller_setup
 
-- name: openstack_haproxy_config | configuring VIP on pacemaker
+- name: openstack_haproxy_config | configuring stickiness on pacemaker
   pacemaker: >
     rsc_defaults resource-stickiness=100
   tags:

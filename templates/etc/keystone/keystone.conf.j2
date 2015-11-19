@@ -220,7 +220,7 @@ admin_token={{ openstack_keystone_temp_admin_token }}
 # RabbitMQ HA cluster host:port pairs. (list value)
 #rabbit_hosts=$rabbit_host:$rabbit_port
 {% if openstack_multi_controller_setup is defined and openstack_multi_controller_setup %}
-rabbit_hosts={% for host in groups['openstack-controller-nodes'] %}{{ host }}:5672{% if not loop.last %},{% endif %}{% endfor %}
+#rabbit_hosts={% for host in groups['openstack-controller-nodes'] %}{{ host }}:5672{% if not loop.last %},{% endif %}{% endfor %}
 
 {% endif %}
 
@@ -228,7 +228,7 @@ rabbit_hosts={% for host in groups['openstack-controller-nodes'] %}{{ host }}:56
 #rabbit_use_ssl=false
 
 # The RabbitMQ userid. (string value)
-#rabbit_userid=guest
+#rabbit_userid = guest
 
 # The RabbitMQ password. (string value)
 #rabbit_password=guest
@@ -256,8 +256,8 @@ rabbit_hosts={% for host in groups['openstack-controller-nodes'] %}{{ host }}:56
 # value)
 #rabbit_ha_queues=false
 {% if openstack_multi_controller_setup is defined and openstack_multi_controller_setup %}
-rabbit_durable_queues=true
-rabbit_ha_queues=true
+rabbit_durable_queues = true
+rabbit_ha_queues = true
 {% endif %}
 
 # If passed, use a fake RabbitMQ provider. (boolean value)
