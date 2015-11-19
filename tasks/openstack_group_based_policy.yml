@@ -16,19 +16,6 @@
     - group-based-policy-ui
     - python-group-based-policy-client
 
-- name: openstack_group_based_policy | enabling GBP
-#  shell: ln -s /usr/lib/python2.7/dist-packages/gbpui/_*project*.py /usr/share/openstack-dashboard/openstack_dashboard/enabled
-  file:
-    src: /usr/lib/python2.7/dist-packages/gbpui/{{ item }}
-    dest: /usr/share/openstack-dashboard/openstack_dashboard/enabled/{{ item }}
-    state: link
-  with_items:
-    - _50_gbp_project_add_panel_group.py
-    - _60_gbp_project_add_panel.py
-    - _61_gbp_project_add_panel.py
-    - _62_gbp_project_add_panel.py
-    - _63_gbp_project_add_panel.py
-
 - name: openstack_group_based_policy | configuring Neutron
   template:
     src: etc/neutron/neutron.conf.j2
@@ -42,6 +29,27 @@
     - restart heat-api-cfn
     - restart heat-engine
     - restart apache2
+
+- name: openstack_group_based_policy | Updating GBP automation package name to work correctly with pbr
+  template:
+    src: usr/lib/python2.7/dist-packages/gbpautomation/__init__.py.j2
+    dest: /usr/lib/python2.7/dist-packages/gbpautomation/__init__.py
+    owner: root
+    group: root
+    mode: 0644
+
+- name: openstack_group_based_policy | Enabling GBP UI on horizon dashboard
+#  shell: ln -s /usr/lib/python2.7/dist-packages/gbpui/_*project*.py /usr/share/openstack-dashboard/openstack_dashboard/enabled
+  file:
+    src: /usr/lib/python2.7/dist-packages/gbpui/{{ item }}
+    dest: /usr/share/openstack-dashboard/openstack_dashboard/enabled/{{ item }}
+    state: link
+  with_items:
+    - _50_gbp_project_add_panel_group.py
+    - _60_gbp_project_add_panel.py
+    - _61_gbp_project_add_panel.py
+    - _62_gbp_project_add_panel.py
+    - _63_gbp_project_add_panel.py
 
 - name: openstack_group_based_policy | checking if GBP tables have been imported
   stat:
