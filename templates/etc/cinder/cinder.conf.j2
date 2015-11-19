@@ -14,13 +14,12 @@ volume_group = cinder-volumes
 iscsi_helper = tgtadm
 
 # Below added by Ansible
-glance_api_version = 2
-{% if inventory_hostname in groups['openstack-controller-nodes'] %}
 rpc_backend = rabbit
+#glance_api_version = 2
+{% if inventory_hostname in groups['openstack-controller-nodes'] %}
 my_ip={{ openstack_nova_my_ip }}
 {% endif %}
 {% if inventory_hostname in groups['openstack-storage-nodes'] %}
-rpc_backend = rabbit
 my_ip={{ openstack_nova_my_ip }}
 enabled_backends = lvm
 {%   if openstack_multi_controller_setup is defined and openstack_multi_controller_setup %}
@@ -33,7 +32,7 @@ glance_api_servers = {{ openstack_services_vip }}:9292
 {%     endif %}
 {%   endif %}
 {%   if openstack_telementry_install is defined and openstack_telementry_install %}
-control_exchange = cinder
+#control_exchange = cinder
 notification_driver = messagingv2
 {%   endif %}
 #image_conversion_dir = {{ openstack_cinder_image_conversion_dir }}
@@ -68,6 +67,10 @@ project_name = service
 username = cinder
 password = {{ openstack_cinder_pass }}
 {% endif %}
+{% if openstack_multi_controller_setup is defined and openstack_multi_controller_setup %}
+memcached_servers = {% for host in groups['openstack-controller-nodes'] %}{{ host }}:11211{% if not loop.last %},{% endif %}{% endfor %}
+
+{% endif %}
 
 [lvm]
 {% if inventory_hostname in groups['openstack-storage-nodes'] %}
@@ -80,33 +83,17 @@ lvm_conf_file = /etc/lvm/lvm.conf
 lock_path = /var/lock/cinder
 
 [oslo_messaging_rabbit]
-{% if inventory_hostname in groups['openstack-controller-nodes'] %}
-rabbit_host = {{ openstack_rabbit_host }}
 rabbit_port = 5672
 rabbit_userid = {{ openstack_rabbit_user }}
 rabbit_password = {{ openstack_rabbit_pass }}
-{%   if openstack_multi_controller_setup is defined and openstack_multi_controller_setup %}
+{% if openstack_multi_controller_setup is defined and openstack_multi_controller_setup %}
 rabbit_durable_queues = true
 rabbit_ha_queues = true
-#rabbit_hosts={% for host in groups['openstack-controller-nodes'] %}{{ host }}:5672{% if not loop.last %},{% endif %}{% endfor %}
+rabbit_hosts={% for host in groups['openstack-controller-nodes'] %}{{ host }}:5672{% if not loop.last %},{% endif %}{% endfor %}
 
 rabbit_retry_interval=1
 rabbit_retry_backoff=2
 rabbit_max_retries=0
-{%   endif %}
-{% endif %}
-{% if inventory_hostname in groups['openstack-storage-nodes'] %}
+{% elif openstack_multi_controller_setup is defined and not openstack_multi_controller_setup %}
 rabbit_host = {{ openstack_rabbit_host }}
-rabbit_port = 5672
-rabbit_userid = {{ openstack_rabbit_user }}
-rabbit_password = {{ openstack_rabbit_pass }}
-{%   if openstack_multi_controller_setup is defined and openstack_multi_controller_setup %}
-rabbit_durable_queues = true
-rabbit_ha_queues = true
-#rabbit_hosts={% for host in groups['openstack-controller-nodes'] %}{{ host }}:5672{% if not loop.last %},{% endif %}{% endfor %}
-
-rabbit_retry_interval=1
-rabbit_retry_backoff=2
-rabbit_max_retries=0
-{%   endif %}
 {% endif %}

@@ -111,6 +111,7 @@ notification_driver = messagingv2
 
 # Messaging driver used for 'messaging' notifications driver
 # rpc_backend = 'rabbit'
+rpc_backend = rabbit
 {% if inventory_hostname in groups['openstack-controller-nodes'] %}
 {%   if ((openstack_telementry_install is defined and not openstack_telementry_install) or openstack_telementry_install is not defined) %}
 
@@ -121,7 +122,6 @@ rabbit_userid = guest
 rabbit_password = guest
 
 {%   elif openstack_telementry_install is defined and openstack_telementry_install %}
-rpc_backend = rabbit
 
 rabbit_host = {{ openstack_rabbit_host }}
 rabbit_userid = {{ openstack_rabbit_user }}
@@ -286,7 +286,6 @@ connection = mysql://glance:{{ openstack_glance_dbpass }}@{{ openstack_glance_db
 #admin_tenant_name = %SERVICE_TENANT_NAME%
 #admin_user = %SERVICE_USER%
 #admin_password = %SERVICE_PASSWORD%
-
 {% if inventory_hostname in groups['openstack-controller-nodes'] %}
 auth_uri = {{ openstack_glance_url }}:5000
 auth_url = {{ openstack_glance_url }}:35357
@@ -297,6 +296,10 @@ project_name = service
 username = glance
 password = {{ openstack_glance_pass }}
 {% endif %}
+{%   if openstack_multi_controller_setup is defined and openstack_multi_controller_setup %}
+memcached_servers = {% for host in groups['openstack-controller-nodes'] %}{{ host }}:11211{% if not loop.last %},{% endif %}{% endfor %}
+
+{%   endif %}
 
 [paste_deploy]
 # Name of the paste configuration file that defines the available pipelines

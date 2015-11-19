@@ -11,9 +11,9 @@ verbose=True
 ec2_private_dns_show_ip=True
 api_paste_config=/etc/nova/api-paste.ini
 enabled_apis=ec2,osapi_compute,metadata
+rpc_backend = rabbit
 
 {% if inventory_hostname in groups['openstack-compute-nodes'] %}
-rpc_backend=rabbit
 auth_strategy=keystone
 my_ip={{ openstack_nova_my_ip }}
 vnc_enabled=True
@@ -42,7 +42,6 @@ notification_driver = messagingv2
 {% endif %}
 
 {% if inventory_hostname in groups['openstack-controller-nodes'] %}
-rpc_backend=rabbit
 auth_strategy=keystone
 my_ip={{ openstack_nova_my_ip }}
 {%   if openstack_services_vip is defined %}
@@ -51,10 +50,6 @@ vncserver_proxyclient_address={{ openstack_services_vip_fqdn }}
 {%   elif openstack_services_vip is not defined %}
 vncserver_listen={{ openstack_nova_my_ip }}
 vncserver_proxyclient_address={{ openstack_nova_my_ip }}
-{%   endif %}
-{%   if openstack_multi_controller_setup is defined and openstack_multi_controller_setup %}
-memcached_servers = {% for host in groups['openstack-controller-nodes'] %}{{ host }}:11211{% if not loop.last %},{% endif %}{% endfor %}
-
 {%   endif %}
 {%   if openstack_networking is defined and openstack_networking == "neutron" %}
 network_api_class = nova.network.neutronv2.api.API
@@ -89,7 +84,6 @@ project_name=service
 username=nova
 password={{ openstack_nova_pass }}
 {% endif %}
-
 {% if inventory_hostname in groups['openstack-controller-nodes'] %}
 auth_uri={{ openstack_keystone_url }}:5000
 auth_url={{ openstack_keystone_url }}:35357
@@ -100,6 +94,10 @@ project_name=service
 username=nova
 password={{ openstack_nova_pass }}
 {% endif %}
+{%   if openstack_multi_controller_setup is defined and openstack_multi_controller_setup %}
+memcached_servers = {% for host in groups['openstack-controller-nodes'] %}{{ host }}:11211{% if not loop.last %},{% endif %}{% endfor %}
+
+{%   endif %}
 
 [neutron]
 {% if inventory_hostname in groups['openstack-controller-nodes'] %}
@@ -139,22 +137,17 @@ lock_path=/var/lib/nova/tmp
 {% endif %}
 
 [oslo_messaging_rabbit]
-{% if inventory_hostname in groups['openstack-compute-nodes'] %}
-rabbit_host = {{ openstack_rabbit_host }}
+rabbit_port = 5672
 rabbit_userid = {{ openstack_rabbit_user }}
-rabbit_password={{ openstack_rabbit_pass }}
-{% endif %}
-
-{% if inventory_hostname in groups['openstack-controller-nodes'] %}
-rabbit_host = {{ openstack_rabbit_host }}
-rabbit_userid = {{ openstack_rabbit_user }}
-rabbit_password={{ openstack_rabbit_pass }}
-{% endif %}
-
+rabbit_password = {{ openstack_rabbit_pass }}
 {% if openstack_multi_controller_setup is defined and openstack_multi_controller_setup %}
-#rabbit_hosts={% for host in groups['openstack-controller-nodes'] %}{{ host }}:5672{% if not loop.last %},{% endif %}{% endfor %}
+rabbit_durable_queues = true
+rabbit_ha_queues = true
+rabbit_hosts={% for host in groups['openstack-controller-nodes'] %}{{ host }}:5672{% if not loop.last %},{% endif %}{% endfor %}
 
 rabbit_retry_interval=1
 rabbit_retry_backoff=2
 rabbit_max_retries=0
+{% elif openstack_multi_controller_setup is defined and not openstack_multi_controller_setup %}
+rabbit_host = {{ openstack_rabbit_host }}
 {% endif %}

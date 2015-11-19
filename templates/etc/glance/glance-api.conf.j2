@@ -246,44 +246,23 @@ notification_driver = noop
 
 # Messaging driver used for 'messaging' notifications driver
 # rpc_backend = 'rabbit'
+rpc_backend = rabbit
 
 # Configuration options if sending notifications via rabbitmq (these are
 # the defaults)
-{% if (openstack_multi_controller_setup is defined and not openstack_multi_controller_setup) or openstack_multi_controller_setup is not defined %}
-rabbit_host = localhost
-rabbit_userid = guest
-rabbit_password = guest
-rabbit_durable_queues = False
-{% endif %}
-
 rabbit_port = 5672
-rabbit_use_ssl = false
-rabbit_virtual_host = /
-rabbit_notification_exchange = glance
-rabbit_notification_topic = notifications
-
-{% if inventory_hostname in groups['openstack-controller-nodes'] %}
-rabbit_host = {{ openstack_rabbit_host }}
 rabbit_userid = {{ openstack_rabbit_user }}
 rabbit_password = {{ openstack_rabbit_pass }}
-{% endif %}
-
-# RabbitMQ HA cluster host:port pairs. (list value)
-# Deprecated group/name - [DEFAULT]/rabbit_hosts
-#rabbit_hosts = $rabbit_host:$rabbit_port
-{% if openstack_multi_controller_setup is defined and openstack_multi_controller_setup %}
-#rabbit_hosts={% for host in groups['openstack-controller-nodes'] %}{{ host }}:5672{% if not loop.last %},{% endif %}{% endfor %}
-
-{% endif %}
-
-# Use HA queues in RabbitMQ (x-ha-policy: all). If you change this option, you
-# must wipe the RabbitMQ database. (boolean value)
-# Deprecated group/name - [DEFAULT]/rabbit_ha_queues
-#rabbit_ha_queues = false
 {% if openstack_multi_controller_setup is defined and openstack_multi_controller_setup %}
 rabbit_durable_queues = true
 rabbit_ha_queues = true
-notifier_strategy = rabbit
+rabbit_hosts={% for host in groups['openstack-controller-nodes'] %}{{ host }}:5672{% if not loop.last %},{% endif %}{% endfor %}
+
+rabbit_retry_interval=1
+rabbit_retry_backoff=2
+rabbit_max_retries=0
+{% elif openstack_multi_controller_setup is defined and not openstack_multi_controller_setup %}
+rabbit_host = {{ openstack_rabbit_host }}
 {% endif %}
 
 # Configuration options if sending notifications via Qpid (these are
@@ -482,7 +461,6 @@ connection = mysql://glance:{{ openstack_glance_dbpass }}@{{ openstack_glance_db
 #admin_user = %SERVICE_USER%
 #admin_password = %SERVICE_PASSWORD%
 #revocation_cache_time = 10
-
 {% if inventory_hostname in groups['openstack-controller-nodes'] %}
 auth_uri = {{ openstack_keystone_url }}:5000
 auth_url = {{ openstack_keystone_url }}:35357
@@ -493,6 +471,10 @@ project_name = service
 username = glance
 password = {{ openstack_glance_pass }}
 {% endif %}
+{%   if openstack_multi_controller_setup is defined and openstack_multi_controller_setup %}
+memcached_servers = {% for host in groups['openstack-controller-nodes'] %}{{ host }}:11211{% if not loop.last %},{% endif %}{% endfor %}
+
+{%   endif %}
 
 [paste_deploy]
 # Name of the paste configuration file that defines the available pipelines

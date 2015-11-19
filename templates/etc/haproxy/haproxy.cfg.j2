@@ -96,7 +96,7 @@ listen glance_api_cluster
   bind {{ openstack_services_vip }}:9292
   balance  source
   option  tcpka
-  option  httpchk
+  option  httpchk /versions
   option  tcplog
 {% for host in groups['openstack-controller-nodes'] %}
   server {{ host }} {{ host }}:9292 check inter 2000 rise 2 fall 5
