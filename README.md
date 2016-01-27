@@ -404,8 +404,10 @@ Example Playbook
 ----------------
 ````
 ---
-- name: bootstrap hosts
+# Bootstrap Hosts
+- name: Bootstrapping Hosts
   hosts: openstack-nodes
+  any_errors_fatal: true  #Added this to ensure plays will stop completely in case of failure. We want to do this in order to not cause issues in remaining plays.
   sudo: true
   vars:
   roles:
@@ -414,63 +416,85 @@ Example Playbook
         - bootstrap
     - role: ansible-users
       tags:
-        - users
-- name: bootstrap hosts
+        - bootstrap
+    - role: ansible-manage-ssh-keys
+      tags:
+        - bootstrap
+
+- name: Ensure Hostnames are correct and reboot if needed
   hosts: openstack-nodes
+  any_errors_fatal: true
   sudo: true
   vars:
   roles:
     - role: ansible-change-hostname
 
-- name: Sets Up Base Apps
+- name: Setting Up Base Apps
   hosts: openstack-nodes
+  any_errors_fatal: true
   sudo: true
   vars:
   roles:
     - role: ansible-base
     - role: ansible-config-interfaces
-      tags:
-        - config-interfaces
-    - role: ansible-ntp
-    - role: ansible-manage-ssh-keys
     - role: ansible-ntp
     - role: ansible-rsyslog
     - role: ansible-postfix
     - role: ansible-snmpd
     - role: ansible-timezone
-    - role: ansible-pacemaker  #HAProxy-Nodes
-      tags:
-        - pacemaker
-      when: (openstack_multi_controller_setup is defined and openstack_multi_controller_setup) and inventory_hostname in groups['openstack-haproxy-nodes']
-    - role: ansible-pacemaker  #Controller-Nodes
-      tags:
-        - pacemaker
-      when: (openstack_multi_controller_setup is defined and openstack_multi_controller_setup) and inventory_hostname in groups['openstack-controller-nodes']
-    - role: ansible-apache2
-      when: inventory_hostname in groups['openstack-controller-nodes']
-    - role: ansible-mariadb-mysql
-      when: (openstack_multi_controller_setup is defined and not openstack_multi_controller_setup) and inventory_hostname in groups['openstack-controller-nodes']
-    - role: ansible-mariadb-galera-cluster
-      when: (openstack_multi_controller_setup is defined and openstack_multi_controller_setup) and inventory_hostname in groups['openstack-controller-nodes']
-    - role: ansible-memcached
-      when: inventory_hostname in groups['openstack-controller-nodes']
-    - role: ansible-rabbitmq
-      when: inventory_hostname in groups['openstack-controller-nodes']
-    - role: ansible-haproxy
-      when: inventory_hostname in groups['openstack-haproxy-nodes'] and (openstack_haproxy_install is defined and openstack_haproxy_install)
 
-# Notes
-# NTP on compute/network node(s) should point to controller node(s)
+- name: Setting up (openstack-haproxy-nodes)
+  hosts: openstack-haproxy-nodes
+  any_errors_fatal: true
+  sudo: true
+  vars:
+  roles:
+    - role: ansible-haproxy
+    - role: ansible-pacemaker
+      when: (openstack_multi_controller_setup is defined and openstack_multi_controller_setup)
+
+- name: Setting up (openstack-controller-nodes)
+  hosts: openstack-controller-nodes
+  any_errors_fatal: true
+  sudo: true
+  vars:
+  roles:
+    - role: ansible-apache2
+    - role: ansible-mariadb-mysql
+      when: (openstack_multi_controller_setup is defined and not openstack_multi_controller_setup)
+    - role: ansible-mariadb-galera-cluster
+      when: (openstack_multi_controller_setup is defined and openstack_multi_controller_setup)
+    - role: ansible-memcached
+    - role: ansible-rabbitmq
+    - role: ansible-pacemaker
+      when: (openstack_multi_controller_setup is defined and openstack_multi_controller_setup)
+
+- name: Setting up (openstack-compute-nodes)
+  hosts: openstack-compute-nodes
+  any_errors_fatal: true
+  sudo: true
+  vars:
+  roles:
+    - role: ansible-manage-lvm
+
+- name: Setting up (openstack-storage-nodes)
+  hosts: openstack-storage-nodes
+  any_errors_fatal: true
+  sudo: true
+  vars:
+  roles:
+    - role: ansible-manage-lvm
+
 - name: Builds OpenStack Environment
   hosts: openstack-nodes
+  any_errors_fatal: true
   sudo: true
   vars:
   roles:
     - role: ansible-openstack
-      tags:
-        - openstack
+  tags:
+    - openstack
   tasks:
-
 
 ####################
 - name: Local Tasks
@@ -479,11 +503,16 @@ Example Playbook
   sudo: false
   vars:
   tasks:
-    - name: creating admin script(s)
+    - name: creating client script(s)  #creating this to source in order to create heat domain
       template:
-        src: templates/admin-openrc.sh.j2
-        dest: ./admin-openrc.sh
+        src: "templates/{{ item }}-openrc.sh.j2"
+        dest: "./{{ item }}-openrc.sh"
         mode: 0700
+      tags:
+        - create-openstack-client-scripts
+      with_items:
+        - admin
+        - demo
 
 ################################
 - name: manage glance images
