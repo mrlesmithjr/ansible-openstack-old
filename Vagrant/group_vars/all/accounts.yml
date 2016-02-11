@@ -1,5 +1,5 @@
 ---
-mysql_root_password: root
+mysql_root_password: 61fea78e16dd73bd757a
 openstack_admin_pass: 29b1416692cb38014ea0  #Password of user admin
 openstack_ceilometer_dbpass: 85c4ac62a58c0a25a922  #Database password for the Telemetry service
 openstack_ceilometer_pass: c3e1b1db22e9b33cd7f4  #Password of Telemetry service user ceilometer
