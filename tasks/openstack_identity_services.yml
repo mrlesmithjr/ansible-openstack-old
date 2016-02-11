@@ -1,5 +1,12 @@
 ---
 # Sets up and configures identity services for OpenStack
+- name: openstack_identity_services | installing python modules
+  pip:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - mysqldb
+    
 - name: openstack_identity_services | creating Keystone DB
   mysql_db:
     name: keystone
