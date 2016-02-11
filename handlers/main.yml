@@ -1,7 +1,7 @@
 ---
 # handlers file for ansible-openstack
-- name: pacemaker commit
-  pacemaker: commit
+#- name: pacemaker commit  ###commented out for now...broken in ansible 2.0
+#  pacemaker: commit
 
 - name: restart apache2
   service:
