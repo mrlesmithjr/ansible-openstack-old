@@ -20,7 +20,7 @@ cd /vagrant
 ansible-playbook -i hosts openstack.yml --user vagrant
 ````
 
-Log into Horizon Dashboard
+Log into Horizon Dashboard  
 http://127.0.0.1:8080/horizon  
 user: administrator  
 password: 29b1416692cb38014ea0  
