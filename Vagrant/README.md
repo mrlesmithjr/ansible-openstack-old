@@ -16,4 +16,6 @@ vagrant up
 After all nodes are spun up connect to the client machine in order to provision all of the nodes.
 ````
 vagrant ssh client
+cd /vagrant
+ansible-playbook -i hosts openstack.yml --user vagrant
 ````
