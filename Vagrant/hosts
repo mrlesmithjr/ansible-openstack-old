@@ -1,0 +1,16 @@
+[openstack-nodes]
+logstash
+oscontroller
+oshaproxy
+
+[openstack-compute-nodes]
+
+[openstack-controller-nodes]
+oscontroller
+
+[openstack-haproxy-nodes]
+oshaproxy
+
+[openstack-network-nodes]
+
+[openstack-storage-nodes]
