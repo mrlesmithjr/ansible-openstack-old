@@ -59,4 +59,17 @@ Vagrant.configure(2) do |config|
       vb.memory = "2048"
     end
   end
+  config.vm.define "osnetwork" do |osnetwork|
+    osnetwork.vm.box = "mrlesmithjr/trusty64"
+    osnetwork.vm.hostname = "osnetwork"
+
+    osnetwork.vm.network :private_network, ip: "192.168.202.204"
+    osnetwork.vm.network :private_network, ip: "192.168.100.204"
+    osnetwork.vm.network :private_network, ip: "172.24.4.225", :netmask => "255.255.255.0", :auto_config => false
+
+    osnetwork.vm.provider "virtualbox" do |vb|
+      vb.memory = "1024"
+      vb.customize ["modifyvm", :id, "--nicpromisc3", "allow-all"]
+    end
+  end
 end

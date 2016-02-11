@@ -25,7 +25,7 @@
     - role: ansible-change-hostname
 
 - name: Updating /etc/hosts
-  hosts: openstack-nodes
+  hosts: all
   any_errors_fatal: true
   become: true
   vars:
@@ -59,6 +59,16 @@
     - role: ansible-postfix
     - role: ansible-snmpd
     - role: ansible-timezone
+
+- name: Setting up ELK
+  hosts: logstash
+  any_errors_fatal: true
+  become: true
+  vars:
+  roles:
+    - role: ansible-elasticsearch
+    - role: ansible-redis
+    - role: ansible-logstash
 
 - name: Setting up (openstack-haproxy-nodes)
   hosts: openstack-haproxy-nodes
@@ -119,6 +129,7 @@
   connection: local
   become: false
   vars:
+    - openstack_keystone_url: 'openstack.{{ pri_domain_name }}'
   tasks:
     - name: creating client script(s)  #creating this to source in order to create heat domain
       template:
@@ -155,31 +166,40 @@
           installed: true
     - openstack_glance_manage_images: true
   tasks:
-    - name: uploading glance images
-      glance_image:
-        auth_url: "{{ openstack_keystone_auth_url }}"  #defined in group_vars/all/openstack_auth_urls.yml
-        login_username: admin
-        login_password: "{{ openstack_admin_pass }}"  #defined in group_vars/all/accounts.yml
-        login_tenant_name: admin
-        name: "{{ item.name }}"
-        container_format: "{{ item.container_format }}"
-        disk_format: "{{ item.disk_format }}"
+    - name: installing Openstack Python Client tools
+      become: true
+      apt:
+        name: "{{ item }}"
         state: present
-        copy_from: "{{ item.image_url }}"
-      tags:
-        - manage_glance_images
-      with_items: openstack_glance_images
-      when: (openstack_glance_manage_images is defined and openstack_glance_manage_images) and (item.installed is defined and item.installed)
+      with_items:
+        - python-openstackclient
+      when: ansible_os_family == "Debian"
 
-    - name: manage_glance_images | removing glance images
-      glance_image:
-        auth_url: "{{ openstack_keystone_auth_url }}"   #defined in group_vars/all/openstack_auth_urls.yml
-        login_username: admin
-        login_password: "{{ openstack_admin_pass }}"  #defined in group_vars/all/accounts.yml
-        login_tenant_name: admin
-        name: "{{ item.name }}"
-        state: absent
-      tags:
-        - manage_glance_images
-      with_items: openstack_glance_images
-      when: (openstack_glance_manage_images is defined and openstack_glance_manage_images) and (item.installed is defined and not item.installed)
+#    - name: uploading glance images
+#      glance_image:
+#        auth_url: "{{ openstack_keystone_auth_url }}"  #defined in group_vars/all/openstack_auth_urls.yml
+#        login_username: admin
+#        login_password: "{{ openstack_admin_pass }}"  #defined in group_vars/all/accounts.yml
+#        login_tenant_name: admin
+#        name: "{{ item.name }}"
+#        container_format: "{{ item.container_format }}"
+#        disk_format: "{{ item.disk_format }}"
+#        state: present
+#        copy_from: "{{ item.image_url }}"
+#      tags:
+#        - manage_glance_images
+#      with_items: openstack_glance_images
+#      when: (openstack_glance_manage_images is defined and openstack_glance_manage_images) and (item.installed is defined and item.installed)
+
+#    - name: manage_glance_images | removing glance images
+#      glance_image:
+#        auth_url: "{{ openstack_keystone_auth_url }}"   #defined in group_vars/all/openstack_auth_urls.yml
+#        login_username: admin
+#        login_password: "{{ openstack_admin_pass }}"  #defined in group_vars/all/accounts.yml
+#        login_tenant_name: admin
+#        name: "{{ item.name }}"
+#        state: absent
+#      tags:
+#        - manage_glance_images
+#      with_items: openstack_glance_images
+#      when: (openstack_glance_manage_images is defined and openstack_glance_manage_images) and (item.installed is defined and not item.installed)

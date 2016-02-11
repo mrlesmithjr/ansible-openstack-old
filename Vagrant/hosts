@@ -1,8 +1,11 @@
+client
+
 [openstack-nodes]
 logstash
 oscompute
 oscontroller
 oshaproxy
+osnetwork
 
 [openstack-compute-nodes]
 oscompute
@@ -14,5 +17,6 @@ oscontroller
 oshaproxy
 
 [openstack-network-nodes]
+osnetwork
 
 [openstack-storage-nodes]

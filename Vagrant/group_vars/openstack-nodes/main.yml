@@ -15,7 +15,4 @@ openstack_multi_controller_setup: false
 openstack_neutron_lbaas_install: false  #defines if Neutron LBAAS services should be installed.
 openstack_neutron_verbose_logging: true  #defines if neutron should enable verbose logging for troubleshooting
 openstack_nova_virt_type: qemu  #Nova virtualization Type, set to KVM if supported and QEMU if not
-openstack_services_vip_fqdn: 'openstack.{{ pri_domain_name }}'
-openstack_services_vip: 192.168.202.201
-pri_domain_name: vagrant.local
 rabbitmq_master: oscontroller

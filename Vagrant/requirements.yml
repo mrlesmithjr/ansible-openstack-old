@@ -4,7 +4,9 @@
 - src: https://github.com/mrlesmithjr/ansible-bootstrap.git
 - src: https://github.com/mrlesmithjr/ansible-change-hostname.git
 - src: https://github.com/mrlesmithjr/ansible-config-interfaces.git
+- src: https://github.com/mrlesmithjr/ansible-elasticsearch.git
 - src: https://github.com/mrlesmithjr/ansible-haproxy.git
+- src: https://github.com/mrlesmithjr/ansible-logstash.git
 - src: https://github.com/mrlesmithjr/ansible-manage-lvm.git
 - src: https://github.com/mrlesmithjr/ansible-manage-ssh-keys.git
 - src: https://github.com/mrlesmithjr/ansible-mariadb-galera-cluster.git
@@ -15,6 +17,7 @@
 - src: https://github.com/mrlesmithjr/ansible-pacemaker.git
 - src: https://github.com/mrlesmithjr/ansible-postfix.git
 - src: https://github.com/mrlesmithjr/ansible-rabbitmq.git
+- src: https://github.com/mrlesmithjr/ansible-redis.git
 - src: https://github.com/mrlesmithjr/ansible-rsyslog.git
 - src: https://github.com/mrlesmithjr/ansible-snmpd.git
 - src: https://github.com/mrlesmithjr/ansible-timezone.git
