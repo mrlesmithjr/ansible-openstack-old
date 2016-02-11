@@ -1,11 +1,13 @@
 Vagrant Environment
 ===================
 
-The Vagrant environment consists of the following nodes  
-client - run code from
+The Vagrant environment consists of the following nodes:  
+client - run code from  
+logstash
+oscompute  
 oscontroller  
 oshaproxy  
-logstash  
+
 
 
 Spin up environment

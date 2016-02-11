@@ -1,9 +1,11 @@
 [openstack-nodes]
 logstash
+oscompute
 oscontroller
 oshaproxy
 
 [openstack-compute-nodes]
+oscompute
 
 [openstack-controller-nodes]
 oscontroller
