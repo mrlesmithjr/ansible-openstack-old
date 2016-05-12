@@ -74,6 +74,18 @@ mechanism_drivers = {% for item in openstack_neutron_mechanism_drivers %}{{ item
 # to be loaded from the neutron.ml2.extension_drivers namespace.
 # extension_drivers =
 # Example: extension_drivers = anewextensiondriver
+{% if inventory_hostname in groups['openstack-compute-nodes'] %}
+extension_drivers = {% for item in openstack_neutron_extension_drivers %}{{ item }}{% if not loop.last %},{% endif %}{% endfor %}
+
+{% endif %}
+{% if inventory_hostname in groups['openstack-controller-nodes'] %}
+extension_drivers = {% for item in openstack_neutron_extension_drivers %}{{ item }}{% if not loop.last %},{% endif %}{% endfor %}
+
+{% endif %}
+{% if inventory_hostname in groups['openstack-network-nodes'] %}
+extension_drivers = {% for item in openstack_neutron_extension_drivers %}{{ item }}{% if not loop.last %},{% endif %}{% endfor %}
+
+{% endif %}
 
 # =========== items for MTU selection and advertisement =============
 # (IntOpt) Path MTU.  The maximum permissible size of an unfragmented
@@ -150,6 +162,15 @@ tunnel_id_ranges = 1:1000
 #
 # vxlan_group =
 # Example: vxlan_group = 239.1.1.1
+{% if inventory_hostname in groups['openstack-compute-nodes'] %}
+vni_ranges = 1:1000
+{% endif %}
+{% if inventory_hostname in groups['openstack-controller-nodes'] %}
+vni_ranges = 1:1000
+{% endif %}
+{% if inventory_hostname in groups['openstack-network-nodes'] %}
+vni_ranges = 1:1000
+{% endif %}
 
 [ovs]
 {% if inventory_hostname in groups['openstack-compute-nodes'] %}

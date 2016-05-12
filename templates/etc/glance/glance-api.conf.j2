@@ -360,7 +360,7 @@ backend = sqlalchemy
 #connection = <None>
 
 {% if inventory_hostname in groups['openstack-controller-nodes'] %}
-connection = mysql://glance:{{ openstack_glance_dbpass }}@{{ openstack_glance_dbhost }}/glance
+connection = mysql+pymysql://glance:{{ openstack_glance_dbpass }}@{{ openstack_glance_dbhost }}/glance
 {% endif %}
 
 # The SQL mode to be used for MySQL sessions. This option,
@@ -570,6 +570,7 @@ flavor=keystone
 
 {% if inventory_hostname in groups['openstack-controller-nodes'] %}
 default_store = {{ openstack_glance_default_store }}
+filesystem_store_datadir = {{ openstack_glance_filesystem_store_datadir }}
 {% endif %}
 
 # ============ Filesystem Store Options ========================

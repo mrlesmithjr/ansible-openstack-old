@@ -40,8 +40,12 @@
     name: "{{ item }}"
     state: present
   with_items:
+    - conntrack
     - neutron-server
     - neutron-plugin-ml2
+    - neutron-plugin-linuxbridge-agent
+    - neutron-dhcp-agent
+    - neutron-metadata-agent
     - python-neutronclient
 
 - name: openstack_neutron_controller_nodes | configuring Neutron

@@ -828,7 +828,7 @@ memcached_servers = {% for host in groups['openstack-controller-nodes'] %}{{ hos
 # configuration file.
 
 {% if inventory_hostname in groups['openstack-controller-nodes'] %}
-connection = mysql://neutron:{{ openstack_neutron_dbpass }}@{{ openstack_neutron_dbhost }}/neutron
+connection = mysql+pymysql://neutron:{{ openstack_neutron_dbpass }}@{{ openstack_neutron_dbhost }}/neutron
 {% endif %}
 
 

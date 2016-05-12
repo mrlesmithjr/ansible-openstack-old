@@ -31,13 +31,14 @@ openstack_cinder_pass: []  #Password of Block Storage service user cinder
 openstack_cinder_url: 'http://{{ openstack_services_vip_fqdn }}'  #http://cinder.{{ pri_domain_name }}
 openstack_cinder_verbose_logging: false  #Defines if cinder should enable verbose logging for troubleshooting
 openstack_dash_dbpass: []  #Database password for the dashboard
-openstack_debian_repository: 'deb http://ubuntu-cloud.archive.canonical.com/ubuntu trusty-updates/{{ openstack_release }} main'
+openstack_debian_repository: 'cloud-archive:{{ openstack_release }}'
 openstack_demo_email: 'demo@{{ pri_domain_name }}'  #Defines demo users email
 openstack_demo_pass: []  #Password of user demo
 openstack_enable_remote_syslog: false  #defines if all openstack services should write to syslog which allows remote syslog functionality...
 openstack_glance_dbhost: "{{ openstack_services_vip_fqdn }}"  #Defines glance db host
 openstack_glance_dbpass: []  #Database password for Image Service
 openstack_glance_default_store: file  #Defines the storage backend to use by default when storing images in Glance....ex...file, swift, s3, rbd, sheepdog, cinder or vsphere
+openstack_glance_filesystem_store_datadir: /var/lib/glance/images/  #Defines glance location of image files
 openstack_glance_images:  #define cloud images to automatically upload to Glance
   - name: cirros
     container_format: bare
@@ -73,7 +74,7 @@ openstack_horizon_remove_ubuntu_theme: false  #Defines if the Ubuntu Horizon the
 openstack_instance_tunnel_ip: []  #Define interface address for tunnel interface....ex. {{ ansible_eth2.ipv4.address }}
 openstack_keystone_dbhost: '{{ openstack_services_vip_fqdn }}'  #Defines keystone db host
 openstack_keystone_dbpass: []  #Database password of Identity service
-openstack_keystone_default_region: regionOne
+openstack_keystone_default_region: RegionOne
 openstack_keystone_endpoints:
   - service_name: ceilometer
     public_url: "{{ openstack_ceilometer_url }}:8777"
@@ -229,6 +230,8 @@ openstack_neutron_dbhost: '{{ openstack_services_vip_fqdn }}'  #Defines neutron 
 openstack_neutron_dbpass: []  #Database password for the Networking service
 openstack_neutron_dhcp_domain: '{{ pri_domain_name }}'  #Defines the domain name assigned to tenant instances
 openstack_neutron_dhcp_dnsmasq_dns_servers: '8.8.8.8, 8.8.4.4'  # Comma-separated list of DNS servers which will be used by dnsmasq as forwarders.
+openstack_neutron_extension_drivers:
+  - port_security
 openstack_neutron_external_networks: #Define external networking resources
   - name: external-networks  #description for networks
     login_password: "{{ openstack_admin_pass }}"
@@ -265,15 +268,18 @@ openstack_neutron_external_networks: #Define external networking resources
         no_gateway: false #If "true", no gateway will be created for this subnet
         state: present #Indicate desired state of the resource
 openstack_neutron_flat_networks:  #defines the physical_network(s) defined in openstack_neutron_bridges to use as external uplinks for flat networking.
+#  - "*"  #defines allow all
 #  - external
-  - "*"  #defines allow all
+  - public
 openstack_neutron_mechanism_drivers:  #defines the networking mechanism driver entrypoints to load....openvswitch, arista, cisco, brocade, linuxbridge, and etc....
-  - openvswitch
-  - l2population
 #  - cisco
+  - l2population
+  - linuxbridge
+#  - openvswitch
 openstack_neutron_pass: []  #Password of Networking service user neutron
 openstack_neutron_tenant_network_types:  #defines tenant network type(s) for tenant networks..local,vlan,gre,vxlan
   - gre
+#  - vxlan
 openstack_neutron_tenant_networks:
     - name: demo-networks
       login_password: "{{ openstack_demo_pass }}"
@@ -347,7 +353,7 @@ openstack_nova_virt_type: kvm  #Nova virtualization Type, set to KVM if supporte
 openstack_rabbit_host: '{{ openstack_services_vip_fqdn }}'  #Defines RabbitMQ host
 openstack_rabbit_pass: []  #Password of user of RabbitMQ
 openstack_rabbit_user: openstack  #User of RabbitMQ
-openstack_release: kilo  #Defines openstack release to install
+openstack_release: liberty  #Defines openstack release to install
 openstack_services_vip: 10.0.101.61  #Define IP to configure LB VIP
 openstack_services_vip_fqdn: 'openstack.{{ pri_domain_name }}'  #Define FQDN for the openstack_services_vip...This should be used for all services to connect to.
 openstack_services_vip_cidr: 24
