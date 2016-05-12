@@ -31,3 +31,8 @@ or ...
 
 user: demo  
 password: 54a27efd264beeb7843d  
+
+When you are done and ready to tear down the environment.  
+````
+./cleanup.sh
+````
