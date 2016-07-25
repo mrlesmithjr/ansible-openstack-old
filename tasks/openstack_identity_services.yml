@@ -171,8 +171,8 @@
     state: directory
 
 - name: openstack_identity_services | downloading WSGI components
-    template:
-      src: "var/www/cgi-bin/keystone/keystone.py.j2"
+  template:
+    src: "var/www/cgi-bin/keystone/keystone.py.j2"
 #  get_url:
 #    url: "http://git.openstack.org/cgit/openstack/keystone/plain/httpd/keystone.py"
     dest: "{{ item }}"
