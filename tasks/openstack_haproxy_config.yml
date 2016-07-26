@@ -1,37 +1,37 @@
 ---
-- name: openstack_haproxy_config | configuring haproxy
+- name: openstack_haproxy_config | Configuring HAProxy
   template:
-    src: etc/haproxy/haproxy.cfg.j2
-    dest: /etc/haproxy/haproxy.cfg
-    owner: root
-    group: root
+    src: "etc/haproxy/haproxy.cfg.j2"
+    dest: "/etc/haproxy/haproxy.cfg"
+    owner: "root"
+    group: "root"
     mode: 0644
-  register: haproxy_reconfigured
-  notify: restart haproxy
+  register: "haproxy_reconfigured"
+  notify: "restart haproxy"
 
-- name: openstack_haproxy_config | downloading haproxy pacemaker config
+- name: openstack_haproxy_config | Downloading HAProxy Pacemaker Config
   get_url:
-    url: http://github.com/russki/cluster-agents/raw/master/haproxy
-    dest: /usr/lib/ocf/resource.d/heartbeat/haproxy
+    url: "http://github.com/russki/cluster-agents/raw/master/haproxy"
+    dest: "/usr/lib/ocf/resource.d/heartbeat/haproxy"
   tags:
-    - pacemaker
+    - "pacemaker"
   when: >
         openstack_multi_controller_setup is defined and
         openstack_multi_controller_setup
 
-- name: openstack_haproxy_config | setting permissions on haproxy pacemaker file
+- name: openstack_haproxy_config | Setting Permissions On HAProxy Pacemaker File
   file:
-    path: /usr/lib/ocf/resource.d/heartbeat/haproxy
-    owner: root
-    group: root
+    path: "/usr/lib/ocf/resource.d/heartbeat/haproxy"
+    owner: "root"
+    group: "root"
     mode: 0755
   tags:
-    - pacemaker
+    - "pacemaker"
   when: >
         openstack_multi_controller_setup is defined and
         openstack_multi_controller_setup
 
-- name: openstack_haproxy_config | configuring VIP on pacemaker
+- name: openstack_haproxy_config | Configuring VIP On Pacemaker
   pacemaker: >
     primitive failover-ip ocf:heartbeat:IPaddr2
     params ip="{{ openstack_services_vip }}" cidr_netmask="{{ openstack_services_vip_cidr }}"
@@ -39,42 +39,42 @@
     commit=yes
   ignore_errors: yes  #added this to get around having to set this setting using shell...it works the first time and then fails the next becuase it is already set...will investigate..
   tags:
-    - pacemaker
+    - "pacemaker"
   notify:
-    - pacemaker commit
+    - "pacemaker commit"
   when: >
         openstack_multi_controller_setup is defined and
         openstack_multi_controller_setup
 
-- name: openstack_haproxy_config | configuring stickiness on pacemaker
+- name: openstack_haproxy_config | Configuring Stickiness On Pacemaker
   pacemaker: >
     rsc_defaults resource-stickiness=100
   tags:
-    - pacemaker
+    - "pacemaker"
   notify:
-    - pacemaker commit
+    - "pacemaker commit"
   when: >
         openstack_multi_controller_setup is defined and
         openstack_multi_controller_setup
 
-- name: openstack_haproxy_config | configuring HAProxy monitoring on pacemaker
+- name: openstack_haproxy_config | Configuring HAProxy Monitoring On Pacemaker
   pacemaker: >
     primitive haproxyLB ocf:heartbeat:haproxy
     params conffile="/etc/haproxy/haproxy.cfg"
     op monitor interval="1s"
   tags:
-    - pacemaker
+    - "pacemaker"
   notify:
-    - pacemaker commit
+    - "pacemaker commit"
   when: >
         openstack_multi_controller_setup is defined and
         openstack_multi_controller_setup
 
-- name: openstack_haproxy_config | configuring colocation for HAProxy VIP on pacemaker
+- name: openstack_haproxy_config | Configuring Colocation For HAProxy VIP On Pacemaker
   shell: "crm configure colocation haproxy-with-public-IPS INFINITY: haproxyLB failover-ip"
   ignore_errors: yes  #added this to get around having to set this setting using shell...it works the first time and then fails the next becuase it is already set...will investigate..
   tags:
-    - pacemaker
+    - "pacemaker"
   when: >
         openstack_multi_controller_setup is defined and
         openstack_multi_controller_setup
@@ -89,8 +89,8 @@
 #    - pacemaker commit
 #  when: openstack_multi_controller_setup is defined and openstack_multi_controller_setup
 
-- name: openstack_haproxy_config | restarting haproxy if reconfigured
+- name: openstack_haproxy_config | Restarting HAProxy If Reconfigured
   service:
-    name: haproxy
-    state: restarted
+    name: "haproxy"
+    state: "restarted"
   when: haproxy_reconfigured.changed
