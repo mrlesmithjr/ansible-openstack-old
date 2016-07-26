@@ -34,6 +34,8 @@ openstack_dash_dbpass: []  #Database password for the dashboard
 openstack_debian_repository: 'deb http://ubuntu-cloud.archive.canonical.com/ubuntu trusty-updates/{{ openstack_release }} main'
 openstack_demo_email: 'demo@{{ pri_domain_name }}'  #Defines demo users email
 openstack_demo_pass: []  #Password of user demo
+openstack_designate_pass: []  #Password for Designate Services
+openstack_designate_url: 'http://{{ openstack_services_vip_fqdn }}'
 openstack_enable_remote_syslog: false  #defines if all openstack services should write to syslog which allows remote syslog functionality...
 openstack_glance_dbhost: "{{ openstack_services_vip_fqdn }}"  #Defines glance db host
 openstack_glance_dbpass: []  #Database password for Image Service
@@ -87,6 +89,10 @@ openstack_keystone_endpoints:
     public_url: "{{ openstack_cinder_url }}:8776/v2/%(tenant_id)s"
     internal_url: "{{ openstack_cinder_url }}:8776/v2/%(tenant_id)s"
     admin_url: "{{ openstack_cinder_url }}:8776/v2/%(tenant_id)s"
+  - service_name: designate
+    public_url: "{{ openstack_designate_url }}:9001"
+    internal_url: "{{ openstack_designate_url }}:9001"
+    admin_url: "{{ openstack_designate_url }}:9001"
   - service_name: glance
     public_url: "{{ openstack_glance_url }}:9292"
     internal_url: "{{ openstack_glance_url }}:9292"
@@ -122,6 +128,9 @@ openstack_keystone_roles:  #Tenants are now Projects
     user: cinder
     tenant: service
   - name: admin
+    user: designate
+    tenant: service
+  - name: admin
     user: glance
     tenant: service
   - name: admin
@@ -152,6 +161,9 @@ openstack_keystone_services:
   - name: cinderv2
     description: "OpenStack Block Storage"
     service_type: volumev2
+  - name: designate
+    description: "OpenStack DNS service"
+    service_type: dns
   - name: glance
     description: "OpenStack Image Service"
     service_type: image
@@ -198,6 +210,9 @@ openstack_keystone_users:  #Tenants are now Projects
     password: "{{ openstack_demo_pass }}"
     email: "{{ openstack_demo_email }}"
     tenant: demo
+  - name: designate
+    password: "{{ openstack_designate_pass }}"
+    tenant: service
   - name: glance
     password: "{{ openstack_glance_pass }}"
     tenant: service

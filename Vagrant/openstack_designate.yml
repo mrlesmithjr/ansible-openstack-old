@@ -22,6 +22,14 @@
   any_errors_fatal: true
   vars:
     - openstack_designate_apt_install: true
+    - openstack_designate_admin_extensions:
+        - quotas
+    - openstack_designate_v1_extensions:
+        - quotas
+    - openstack_designate_v2_extensions:
+        - quotas
+    - openstack_rabbit_host: '{{ openstack_services_vip_fqdn }}'
+    - openstack_rabbit_user: openstack
   roles:
   tasks:
     - name: Installing Designate Pre-Reqs
@@ -54,3 +62,8 @@
       with_items:
         - 'designate'
         - 'designate_pool_manager'
+
+    - name: Configuring OpenStack Designate
+      template:
+        src: "designate.conf.j2"
+        dest: "/etc/designate/designate.conf"
