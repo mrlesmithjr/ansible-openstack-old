@@ -613,7 +613,7 @@ syslog_log_facility = LOG_USER
 #connection=sqlite:////var/lib/keystone/keystone.db
 
 {% if inventory_hostname in groups['openstack-controller-nodes'] %}
-connection=mysql://keystone:{{ openstack_keystone_dbpass }}@{{ openstack_keystone_dbhost }}/keystone
+connection=mysql+pymysql://keystone:{{ openstack_keystone_dbpass }}@{{ openstack_keystone_dbhost }}/keystone
 {% endif %}
 
 # The SQLAlchemy connection string to use to connect to the
@@ -1324,7 +1324,8 @@ servers=localhost:11211
 #driver=keystone.contrib.revoke.backends.kvs.Revoke
 
 {% if inventory_hostname in groups['openstack-controller-nodes'] %}
-driver = keystone.contrib.revoke.backends.sql.Revoke
+#driver = keystone.contrib.revoke.backends.sql.Revoke
+driver = sql
 {% endif %}
 
 # This value (calculated in seconds) is added to token
@@ -1531,14 +1532,16 @@ driver = keystone.contrib.revoke.backends.sql.Revoke
 #provider=<None>
 
 {% if inventory_hostname in groups['openstack-controller-nodes'] %}
-provider = keystone.token.providers.uuid.Provider
+#provider = keystone.token.providers.uuid.Provider
+provider = uuid
 {% endif %}
 
 # Token persistence backend driver. (string value)
 #driver=keystone.token.persistence.backends.sql.Token
 
 {% if inventory_hostname in groups['openstack-controller-nodes'] %}
-driver = keystone.token.persistence.backends.sql.Token
+#driver = keystone.token.persistence.backends.sql.Token
+driver = memcache
 {% endif %}
 
 # Toggle for token system caching. This has no effect unless
