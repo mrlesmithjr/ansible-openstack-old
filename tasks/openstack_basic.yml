@@ -1,26 +1,24 @@
 ---
-- name: openstack_basic | cleaning up ntp dhcp configurations
+- name: openstack_basic | Cleaning Up NTP DHCP Configurations
   file:
-    path: /var/lib/ntp/ntp.conf.dhcp
-    state: absent
+    path: "/var/lib/ntp/ntp.conf.dhcp"
+    state: "absent"
 
-- name: openstack_basic | installing pre-reqs
+- name: openstack_basic | Installing Pre-Reqs
   apt:
-    name: "{{ item }}"
-    state: present
-  with_items:
-    - ubuntu-cloud-keyring
+    name: "ubuntu-cloud-keyring"
+    state: "present"
 
-- name: openstack_basic | adding openstack debian repos
+- name: openstack_basic | Adding OpenStack Debian Repos
   apt_repository:
     repo: "{{ openstack_debian_repository }}"
-    state: present
+    state: "present"
 
-- name: openstack_haproxy_config | allowing VIP to come up on nodes
+- name: openstack_basic | Configuring System To Allow VIP To Come UP
   sysctl:
     name: "net.ipv4.ip_nonlocal_bind"
     value: 1
-    state: present
+    state: "present"
     reload: yes
   when: >
         (openstack_haproxy_config is defined and
