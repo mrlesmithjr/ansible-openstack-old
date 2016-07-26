@@ -72,4 +72,14 @@ Vagrant.configure(2) do |config|
       vb.customize ["modifyvm", :id, "--nicpromisc3", "allow-all"]
     end
   end
+  config.vm.define "ddi" do |ddi|
+    ddi.vm.box = "mrlesmithjr/trusty64"
+    ddi.vm.hostname = "ddi"
+
+    ddi.vm.network :private_network, ip: "192.168.202.205"
+
+    ddi.vm.provider "virtualbox" do |vb|
+      vb.memory = "1024"
+    end
+  end
 end

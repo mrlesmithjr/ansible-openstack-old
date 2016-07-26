@@ -15,7 +15,9 @@
 - src: https://github.com/mrlesmithjr/ansible-ntp.git
 - src: https://github.com/mrlesmithjr/ansible-openstack.git
 - src: https://github.com/mrlesmithjr/ansible-pacemaker.git
+- src: https://github.com/mrlesmithjr/ansible-phpipam.git
 - src: https://github.com/mrlesmithjr/ansible-postfix.git
+- src: https://github.com/mrlesmithjr/ansible-powerdns.git
 - src: https://github.com/mrlesmithjr/ansible-rabbitmq.git
 - src: https://github.com/mrlesmithjr/ansible-redis.git
 - src: https://github.com/mrlesmithjr/ansible-rsyslog.git
