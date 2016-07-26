@@ -7,6 +7,7 @@ openstack_ceilometer_token_secret: ce0a6f2c366dcec9548c  #defines the token secr
 openstack_cinder_dbpass: bcb4f4279d699c12c6ea  #Database password for the Block Storage service
 openstack_cinder_pass: d9eb36abbb2e88356208  #Password of Block Storage service user cinder
 openstack_dash_dbpass: cb77b8806e4dc8693d8e  #Database password for the dashboard
+openstack_designate_pass: d68bcce1982af8b0527c  #Designate Service password
 openstack_demo_pass: 54a27efd264beeb7843d  #Password of user demo
 openstack_glance_dbpass: 295062a986b8deded530  #Database password for Image Service
 openstack_glance_pass: 60278dafa015c0cc3943  #Password of Image Service user glance

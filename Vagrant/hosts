@@ -1,6 +1,7 @@
 client
 
 [openstack-nodes]
+ddi
 logstash
 oscompute
 oscontroller
@@ -20,3 +21,6 @@ oshaproxy
 osnetwork
 
 [openstack-storage-nodes]
+
+[ddi]
+ddi

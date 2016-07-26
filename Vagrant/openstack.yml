@@ -60,6 +60,17 @@
     - role: ansible-snmpd
     - role: ansible-timezone
 
+- name: Setting up DDI
+  hosts: ddi
+  any_errors_fatal: true
+  become: true
+  vars:
+  roles:
+    - role: ansible-apache2
+    - role: ansible-mariadb-mysql
+    - role: ansible-powerdns
+    - role: ansible-phpipam
+
 - name: Setting up ELK
   hosts: logstash
   any_errors_fatal: true
