@@ -1,5 +1,5 @@
 ---
-- name: openstack_keystone_endpoints | creating keystone endpoints
+- name: openstack_keystone_endpoints | Creating Keystone Endpoints
   keystone_endpoint:
     service_name: "{{ item.service_name }}"
     region: "{{ item.region|default(openstack_keystone_default_region) }}"
@@ -7,13 +7,13 @@
     internal_url: "{{ item.internal_url }}"
     admin_url: "{{ item.admin_url }}"
     token: "{{ openstack_keystone_temp_admin_token }}"
-    state: present
-  with_items: openstack_keystone_endpoints
+    state: "present"
+  with_items: '{{ openstack_keystone_endpoints }}'
   when: >
         openstack_keystone_api_master is defined and
         (inventory_hostname == openstack_keystone_api_master)
 
-- name: openstack_keystone_endpoints | creating keystone endpoints  #duplicated to ensure that if openstack_keystone_api_master does not match an inventory_hostname
+- name: openstack_keystone_endpoints | Creating Keystone Endpoints  #duplicated to ensure that if openstack_keystone_api_master does not match an inventory_hostname
   keystone_endpoint:
     service_name: "{{ item.service_name }}"
     region: "{{ item.region|default(openstack_keystone_default_region) }}"
@@ -21,8 +21,8 @@
     internal_url: "{{ item.internal_url }}"
     admin_url: "{{ item.admin_url }}"
     token: "{{ openstack_keystone_temp_admin_token }}"
-    state: present
-  with_items: openstack_keystone_endpoints
+    state: "present"
+  with_items: '{{ openstack_keystone_endpoints }}'
   when: >
         openstack_keystone_api_master is defined and
         (inventory_hostname != openstack_keystone_api_master)
