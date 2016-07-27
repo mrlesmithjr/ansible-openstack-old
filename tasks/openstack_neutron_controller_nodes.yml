@@ -1,88 +1,98 @@
 ---
-- name: openstack_neutron_controller_nodes | creating Neutron DB
+- name: openstack_neutron_controller_nodes | Creating Neutron DB
   mysql_db:
-    name: neutron
-    state: present
+    name: "neutron"
+    state: "present"
   when: mysql_master
 
-- name: openstack_neutron_controller_nodes | creating Neutron DB
+- name: openstack_neutron_controller_nodes | Creating Neutron DB
   mysql_db:
-    name: neutron
-    state: present
+    name: "neutron"
+    state: "present"
   when: not mysql_master
 
-- name: openstack_neutron_controller_nodes | granting permissions to Nova DB
+- name: openstack_neutron_controller_nodes | Granting Permissions To Nova DB
   mysql_user:
-    name: neutron
+    name: "neutron"
     password: "{{ openstack_neutron_dbpass }}"
     priv: "neutron.*:ALL"
     host: "{{ item }}"
-    state: present
+    state: "present"
   with_items:
-    - localhost
+    - 'localhost'
     - '%'
   when: mysql_master
 
-- name: openstack_neutron_controller_nodes | granting permissions to Nova DB
+- name: openstack_neutron_controller_nodes | Granting Permissions To Nova DB
   mysql_user:
-    name: neutron
+    name: "neutron"
     password: "{{ openstack_neutron_dbpass }}"
     priv: "neutron.*:ALL"
     host: "{{ item }}"
-    state: present
+    state: "present"
   with_items:
-    - localhost
+    - 'localhost'
     - '%'
   when: not mysql_master
 
-- name: openstack_neutron_controller_nodes | installing Neutron packages
+- name: openstack_neutron_controller_nodes | Installing Neutron Packages
   apt:
     name: "{{ item }}"
-    state: present
+    state: "present"
   with_items:
-    - conntrack
-    - neutron-server
-    - neutron-plugin-ml2
-    - neutron-plugin-linuxbridge-agent
-    - neutron-dhcp-agent
-    - neutron-metadata-agent
-    - python-neutronclient
+    - 'conntrack'
+    - 'neutron-server'
+    - 'neutron-plugin-ml2'
+    - 'neutron-plugin-linuxbridge-agent'
+    - 'neutron-dhcp-agent'
+    - 'neutron-metadata-agent'
+    - 'python-neutronclient'
 
-- name: openstack_neutron_controller_nodes | configuring Neutron
+- name: openstack_neutron_controller_nodes | Configuring Neutron
   template:
-    src: etc/neutron/neutron.conf.j2
-    dest: /etc/neutron/neutron.conf
-    owner: root
-    group: root
+    src: "etc/neutron/neutron.conf.j2"
+    dest: "/etc/neutron/neutron.conf"
+    owner: "root"
+    group: "root"
     mode: 0644
   notify:
-    - restart neutron-server
+    - "restart neutron-server"
 
-- name: openstack_neutron_controller_nodes | configuring Neutron ML2 Plugin(s)
+- name: openstack_neutron_controller_nodes | Configuring Neutron ML2 Plugin(s)
   template:
-    src: etc/neutron/plugins/ml2/ml2_conf.ini.j2
-    dest: /etc/neutron/plugins/ml2/ml2_conf.ini
-    owner: root
-    group: root
+    src: "etc/neutron/plugins/ml2/ml2_conf.ini.j2"
+    dest: "/etc/neutron/plugins/ml2/ml2_conf.ini"
+    owner: "root"
+    group: "root"
     mode: 0644
   notify:
-    - restart neutron-server
+    - "restart neutron-server"
 
-- name: openstack_neutron_controller_nodes | checking if neutron has been populated
+- name: openstack_neutron_controller_nodes | Configuring Neutron ML2 Plugin(s)
+  template:
+    src: "etc/neutron/plugins/ml2/linuxbridge_agent.ini.j2"
+    dest: "/etc/neutron/plugins/ml2/linuxbridge_agent.ini"
+    owner: "root"
+    group: "root"
+    mode: 0644
+  notify:
+    - "restart neutron-plugin-linuxbridge-agent"
+
+- name: openstack_neutron_controller_nodes | Checking If Neutron Has Been Populated
   stat:
-    path: /etc/neutron/neutron_populated
-  register: neutron_is_populated
+    path: "/etc/neutron/neutron_populated"
+  register: "neutron_is_populated"
   always_run: yes
 
-- name: openstack_neutron_controller_nodes | populating neutron
+- name: openstack_neutron_controller_nodes | Populating Neutron
   command: su -s /bin/sh -c "neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/ml2/ml2_conf.ini upgrade head" neutron
-  register: neutron_populated
+  register: "neutron_populated"
   when: >
         not neutron_is_populated.stat.exists and
         mysql_master
 
-- name: openstack_neutron_controller_nodes | marking neutron as populated
+- name: openstack_neutron_controller_nodes | Marking Neutron As Populated
   file:
-    path: /etc/neutron/neutron_populated
-    state: touch
+    path: "/etc/neutron/neutron_populated"
+    state: "touch"
   when: neutron_populated.changed
