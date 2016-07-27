@@ -1,100 +1,100 @@
 ---
-- name: openstack_compute_services | creating Nova DB
+- name: openstack_compute_services | Creating Nova DB
   mysql_db:
-    name: nova
-    state: present
+    name: "nova"
+    state: "present"
   when: mysql_master
 
-- name: openstack_compute_services | creating Nova DB
+- name: openstack_compute_services | Creating Nova DB
   mysql_db:
-    name: nova
-    state: present
+    name: "nova"
+    state: "present"
   when: not mysql_master
 
-- name: openstack_compute_services | granting permissions to Nova DB
+- name: openstack_compute_services | Granting Permissions To Nova DB
   mysql_user:
-    name: nova
+    name: "nova"
     password: "{{ openstack_nova_dbpass }}"
     priv: "nova.*:ALL"
     host: "{{ item }}"
-    state: present
+    state: "present"
   with_items:
-    - localhost
+    - 'localhost'
     - '%'
   when: mysql_master
 
-- name: openstack_compute_services | granting permissions to Nova DB
+- name: openstack_compute_services | Granting Permissions To Nova DB
   mysql_user:
-    name: nova
+    name: "nova"
     password: "{{ openstack_nova_dbpass }}"
     priv: "nova.*:ALL"
     host: "{{ item }}"
-    state: present
+    state: "present"
   with_items:
-    - localhost
+    - 'localhost'
     - '%'
   when: not mysql_master
 
-- name: openstack_compute_services | install nova packages
+- name: openstack_compute_services | Installing Nova Packages
   apt:
     name: "{{ item }}"
-    state: present
+    state: "present"
   with_items:
-    - nova-api
-    - nova-cert
-    - nova-conductor
-    - nova-consoleauth
-    - nova-novncproxy
-    - nova-scheduler
-    - python-novaclient
+    - 'nova-api'
+    - 'nova-cert'
+    - 'nova-conductor'
+    - 'nova-consoleauth'
+    - 'nova-novncproxy'
+    - 'nova-scheduler'
+    - 'python-novaclient'
 
-- name: openstack_compute_services | configuring nova
+- name: openstack_compute_services | Configuring Nova
   template:
-    src: etc/nova/nova.conf.j2
-    dest: /etc/nova/nova.conf
-    owner: root
-    group: root
+    src: "etc/nova/nova.conf.j2"
+    dest: "/etc/nova/nova.conf"
+    owner: "root"
+    group: "root"
     mode: 0644
   tags:
-    - configure_nova
+    - "configure_nova"
   notify:
-    - restart nova-api
-    - restart nova-cert
-    - restart nova-consoleauth
-    - restart nova-scheduler
-    - restart nova-conductor
-    - restart nova-novncproxy
+    - "restart nova-api"
+    - "restart nova-cert"
+    - "restart nova-consoleauth"
+    - "restart nova-scheduler"
+    - "restart nova-conductor"
+    - "restart nova-novncproxy"
 
-- name: openstack_compute_services | checking if nova has been populated
+- name: openstack_compute_services | Checking If Nova Has Been Populated
   stat:
-    path: /etc/nova/nova_populated
-  register: nova_is_populated
+    path: "/etc/nova/nova_populated"
+  register: "nova_is_populated"
   always_run: yes
 
-- name: openstack_compute_services | populating nova
+- name: openstack_compute_services | Populating Nova
   command: su -s /bin/sh -c "nova-manage db sync" nova
-  register: nova_populated
+  register: "nova_populated"
   when: >
         not nova_is_populated.stat.exists and
         mysql_master
 
-- name: openstack_compute_services | marking nova as populated
+- name: openstack_compute_services | Marking Nova As Populated
   file:
-    path: /etc/nova/nova_populated
-    state: touch
+    path: "/etc/nova/nova_populated"
+    state: "touch"
   when: nova_populated.changed
 
-- name: openstack_compute_services | removing sqlite db
+- name: openstack_compute_services | Removing SQLite DB
   file:
-    path: /var/lib/nova/nova.sqlite
-    state: absent
+    path: "/var/lib/nova/nova.sqlite"
+    state: "absent"
 
-- name: openstack_compute_services | configuring memcached
+- name: openstack_compute_services | Configuring Memcached
   template:
-    src: etc/memcached.conf.j2
-    dest: /etc/memcached.conf
-    owner: root
-    group: root
+    src: "etc/memcached.conf.j2"
+    dest: "/etc/memcached.conf"
+    owner: "root"
+    group: "root"
     mode: 0644
   notify:
-    - restart memcached
+    - "restart memcached"
