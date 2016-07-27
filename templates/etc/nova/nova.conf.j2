@@ -30,7 +30,8 @@ instance_build_timeout = 0
 {%   if openstack_networking is defined and openstack_networking == "neutron" %}
 network_api_class = nova.network.neutronv2.api.API
 security_group_api = neutron
-linuxnet_interface_driver = nova.network.linux_net.LinuxOVSInterfaceDriver
+#linuxnet_interface_driver = nova.network.linux_net.LinuxOVSInterfaceDriver
+linuxnet_interface_driver = nova.network.linux_net.NeutronLinuxBridgeInterfaceDriver
 firewall_driver = nova.virt.firewall.NoopFirewallDriver
 {%   endif %}
 {%   if openstack_telementry_install is defined and openstack_telementry_install %}
