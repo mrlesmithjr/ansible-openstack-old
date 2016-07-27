@@ -3,6 +3,7 @@
 - src: https://github.com/mrlesmithjr/ansible-base.git
 - src: https://github.com/mrlesmithjr/ansible-bootstrap.git
 - src: https://github.com/mrlesmithjr/ansible-change-hostname.git
+- src: https://github.com/mrlesmithjr/ansible-chrony.git
 - src: https://github.com/mrlesmithjr/ansible-config-interfaces.git
 - src: https://github.com/mrlesmithjr/ansible-elasticsearch.git
 - src: https://github.com/mrlesmithjr/ansible-haproxy.git

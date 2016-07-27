@@ -37,7 +37,7 @@
         regexp: "^{{ hostvars[item].ansible_ssh_host }} {{ item }} {{ item }}.{{ pri_domain_name }}"
         line: "{{ hostvars[item].ansible_ssh_host }} {{ item }} {{ item }}.{{ pri_domain_name }}"
         state: present
-      with_items: groups['all']
+      with_items: '{{ play_hosts }}'
 
     - name: updating /etc/hosts
       lineinfile:
@@ -54,7 +54,8 @@
   roles:
     - role: ansible-base
     - role: ansible-config-interfaces
-    - role: ansible-ntp
+    # - role: ansible-ntp  #Replaced with chrony
+    - role: ansible-chrony
     - role: ansible-rsyslog
     - role: ansible-postfix
     - role: ansible-snmpd
@@ -78,7 +79,9 @@
   roles:
     - role: ansible-haproxy
     - role: ansible-pacemaker
-      when: (openstack_multi_controller_setup is defined and openstack_multi_controller_setup)
+      when: >
+            openstack_multi_controller_setup is defined and
+            openstack_multi_controller_setup
 
 - name: Setting up (openstack-controller-nodes)
   hosts: openstack-controller-nodes
@@ -88,13 +91,19 @@
   roles:
     - role: ansible-apache2
     - role: ansible-mariadb-mysql
-      when: (openstack_multi_controller_setup is defined and not openstack_multi_controller_setup)
+      when: >
+            openstack_multi_controller_setup is defined and
+            not openstack_multi_controller_setup
     - role: ansible-mariadb-galera-cluster
-      when: (openstack_multi_controller_setup is defined and openstack_multi_controller_setup)
+      when: >
+            openstack_multi_controller_setup is defined and
+            openstack_multi_controller_setup
     - role: ansible-memcached
     - role: ansible-rabbitmq
     - role: ansible-pacemaker
-      when: (openstack_multi_controller_setup is defined and openstack_multi_controller_setup)
+      when: >
+            openstack_multi_controller_setup is defined and
+            openstack_multi_controller_setup
 
 - name: Setting up (openstack-compute-nodes)
   hosts: openstack-compute-nodes
@@ -123,57 +132,57 @@
     - openstack
   tasks:
 
-####################
-- name: Local Tasks
-  hosts: localhost
-  connection: local
-  become: false
-  vars:
-    - openstack_keystone_url: 'openstack.{{ pri_domain_name }}'
-  tasks:
-    - name: creating client script(s)  #creating this to source in order to create heat domain
-      template:
-        src: "templates/{{ item }}-openrc.sh.j2"
-        dest: "./{{ item }}-openrc.sh"
-        mode: 0700
-      tags:
-        - create-openstack-client-scripts
-      with_items:
-        - admin
-        - demo
-
-################################
-- name: manage glance images
-  hosts: localhost
-  connection: local
-  become: false
-  vars:
-    - openstack_glance_images:  #define cloud images to automatically upload to Glance
-        - name: cirros
-          container_format: bare
-          disk_format: qcow2
-          image_url: http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-disk.img
-          installed: true
-        - name: Fedora-22
-          container_format: bare
-          disk_format: qcow2
-          image_url: http://repo.atlantic.net/fedora/linux/releases/22/Cloud/x86_64/Images/Fedora-Cloud-Base-22-20150521.x86_64.qcow2
-          installed: true
-        - name: Ubuntu-14.04
-          container_format: bare
-          disk_format: qcow2
-          image_url: https://cloud-images.ubuntu.com/trusty/current/trusty-server-cloudimg-amd64-disk1.img
-          installed: true
-    - openstack_glance_manage_images: true
-  tasks:
-    - name: installing Openstack Python Client tools
-      become: true
-      apt:
-        name: "{{ item }}"
-        state: present
-      with_items:
-        - python-openstackclient
-      when: ansible_os_family == "Debian"
+# ####################
+# - name: Local Tasks
+#   hosts: localhost
+#   connection: local
+#   become: false
+#   vars:
+#     - openstack_keystone_url: 'openstack.{{ pri_domain_name }}'
+#   tasks:
+#     - name: creating client script(s)  #creating this to source in order to create heat domain
+#       template:
+#         src: "templates/{{ item }}-openrc.sh.j2"
+#         dest: "./{{ item }}-openrc.sh"
+#         mode: 0700
+#       tags:
+#         - create-openstack-client-scripts
+#       with_items:
+#         - admin
+#         - demo
+#
+# ################################
+# - name: manage glance images
+#   hosts: localhost
+#   connection: local
+#   become: false
+#   vars:
+#     - openstack_glance_images:  #define cloud images to automatically upload to Glance
+#         - name: cirros
+#           container_format: bare
+#           disk_format: qcow2
+#           image_url: http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-disk.img
+#           installed: true
+#         - name: Fedora-22
+#           container_format: bare
+#           disk_format: qcow2
+#           image_url: http://repo.atlantic.net/fedora/linux/releases/22/Cloud/x86_64/Images/Fedora-Cloud-Base-22-20150521.x86_64.qcow2
+#           installed: true
+#         - name: Ubuntu-14.04
+#           container_format: bare
+#           disk_format: qcow2
+#           image_url: https://cloud-images.ubuntu.com/trusty/current/trusty-server-cloudimg-amd64-disk1.img
+#           installed: true
+#     - openstack_glance_manage_images: true
+#   tasks:
+#     - name: installing Openstack Python Client tools
+#       become: true
+#       apt:
+#         name: "{{ item }}"
+#         state: present
+#       with_items:
+#         - python-openstackclient
+#       when: ansible_os_family == "Debian"
 
 #    - name: uploading glance images
 #      glance_image:
