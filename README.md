@@ -1,7 +1,7 @@
 Role Name
 =========
 
-This role is to provision out a complete OpenStack (Kilo) deployment. Including all services, networks and tenants (Projects).
+This role is to provision out a complete OpenStack (Liberty) deployment. Including all services, networks and tenants (Projects).
 
 Requirements
 ------------
@@ -381,7 +381,7 @@ openstack_nova_virt_type: kvm  #Nova virtualization Type, set to KVM if supporte
 openstack_rabbit_host: '{{ openstack_services_vip_fqdn }}'  #Defines RabbitMQ host
 openstack_rabbit_pass: []  #Password of user of RabbitMQ
 openstack_rabbit_user: openstack  #User of RabbitMQ
-openstack_release: kilo  #Defines openstack release to install
+openstack_release: liberty  #Defines openstack release to install
 openstack_services_vip: 10.0.101.61  #Define IP to configure LB VIP
 openstack_services_vip_fqdn: 'openstack.{{ pri_domain_name }}'  #Define FQDN for the openstack_services_vip...This should be used for all services to connect to.
 openstack_services_vip_cidr: 24
