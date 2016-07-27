@@ -18,12 +18,16 @@ tunnel_types = {% for item in openstack_neutron_tunnel_types %}{{ item }}{% if n
 # type_drivers = local,flat,vlan,gre,vxlan
 # Example: type_drivers = flat,vlan,gre,vxlan
 {% if inventory_hostname in groups['openstack-compute-nodes'] %}
+{%   if openstack_neutron_tenant_network_types is defined %}
 type_drivers = {% for item in openstack_neutron_type_drivers %}{{ item }}{% if not loop.last %},{% endif %}{% endfor %}
 
+{%   endif %}
 {% endif %}
 {% if inventory_hostname in groups['openstack-controller-nodes'] %}
+{%   if openstack_neutron_tenant_network_types is defined %}
 type_drivers = {% for item in openstack_neutron_type_drivers %}{{ item }}{% if not loop.last %},{% endif %}{% endfor %}
 
+{%   endif %}
 {% endif %}
 {% if inventory_hostname in groups['openstack-network-nodes'] %}
 type_drivers = {% for item in openstack_neutron_type_drivers %}{{ item }}{% if not loop.last %},{% endif %}{% endfor %}
@@ -190,17 +194,20 @@ bridge_mappings = {% for item in openstack_neutron_bridges %}{% for phys_network
 {% if inventory_hostname in groups['openstack-compute-nodes'] %}
 enable_security_group = True
 enable_ipset = True
-firewall_driver = neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver
+#firewall_driver = neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver
+firewall_driver = neutron.agent.linux.iptables_firewall.IptablesFirewallDriver
 {% endif %}
 {% if inventory_hostname in groups['openstack-controller-nodes'] %}
 enable_security_group = True
 enable_ipset = True
-firewall_driver = neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver
+#firewall_driver = neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver
+firewall_driver = neutron.agent.linux.iptables_firewall.IptablesFirewallDriver
 {% endif %}
 {% if inventory_hostname in groups['openstack-network-nodes'] %}
 enable_security_group = True
 enable_ipset = True
-firewall_driver = neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver
+#firewall_driver = neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver
+firewall_driver = neutron.agent.linux.iptables_firewall.IptablesFirewallDriver
 {% endif %}
 
 # Use ipset to speed-up the iptables security groups. Enabling ipset support
