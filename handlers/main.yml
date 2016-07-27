@@ -118,6 +118,11 @@
     name: neutron-metadata-agent
     state: restarted
 
+- name: "restart neutron-plugin-linuxbridge-agent"
+  service:
+    name: "neutron-plugin-linuxbridge-agent"
+    state: "restarted"
+
 - name: restart neutron-plugin-openvswitch-agent
   service:
     name: neutron-plugin-openvswitch-agent
